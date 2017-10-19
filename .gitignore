@@ -6,3 +6,6 @@ logs/*.log
 
 # IDE
 .idea/
+
+.env
+nohup.out

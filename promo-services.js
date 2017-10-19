@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require('express');
 const json2csv = require('json2csv');
 const basicAuth = require('basic-auth');
@@ -14,7 +16,7 @@ const auth = function (req, resp, next) {
     return unauthorized(resp);
   }
 
-  if (user.name === 'takapic' && user.pass === '123') {
+  if (user.name === process.env.BASIC_AUTH_USERNAME && user.pass === process.env.BASIC_AUTH_PASSWORD) {
     return next();
   } else {
     return unauthorized(resp);
