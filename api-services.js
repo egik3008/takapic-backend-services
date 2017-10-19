@@ -1,45 +1,23 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const logger = require('./commons/logger');
-const firebaseAdmin = require('./commons/firebase');
-const helpers = require('./commons/helpers');
+// const logger = require('./commons/logger');
+const firebaseAdmin = require('./commons/firebaseAdmin');
+// const helpers = require('./commons/helpers');
 
 const app = express();
 const router = express.Router();
 const port = process.env.PORT || 8008;
 
-function createUserMetadata(email, userType) {
-  const db = firebaseAdmin.database();
-  const ref = db.ref('/user_metadata');
-  const data = {};
-  data[helpers.createUIDChars(email)] = {
-    userType: userType,
-    firstLogin: true
-  };
-  ref.set(data);
-}
-
 // ROUTES FOR OUR API
-router.post('/users', function (request, response) {
-  const data = {
-    email: request.body.email,
-    password: request.body.password,
-    displayName: request.body.displayName,
-    emailVerified: false,
-    disabled: false
-  };
-
-  firebaseAdmin.auth().createUser(data)
+router.get('/users/:uid', function (request, response) {
+  firebaseAdmin.auth().getUser(request.params.uid)
     .then(function (userRecord) {
-      logger.info('Successfully created new user:', {email: data.email, uid: userRecord.uid});
-      createUserMetadata(data.email, request.body.userType);
-      response.statusCode = 201;
-      response.json({ message: 'User created', uid: userRecord.uid });
-
-    }).catch(function (error) {
-      logger.debug('Error creating new user', error.message);
-      response.statusCode = 400;
-      response.json({ message: error.message });
+      console.log('Successfully fetched user data: ', userRecord.toJSON());
+      response.json({ data: userRecord });
+    })
+    .catch(function (error) {
+      response.json({ error: error });
+      console.log('Error fetching user data: ', error);
     });
 });
 
