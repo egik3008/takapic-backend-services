@@ -57,6 +57,6 @@ router.get('/', function (req, resp) {
 
 app.use('/report', auth, router);
 
-const port = process.env.PORT || 8484;
+const port = 8484;
 app.listen(port);
 console.log('Listen on port', port);
