@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "algoliasearch": "^3.24.5",
     "basic-auth": "^2.0.0",
     "body-parser": "^1.18.2",
     "dotenv": "^4.0.0",

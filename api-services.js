@@ -1,24 +1,31 @@
+const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
-// const logger = require('./commons/logger');
-const firebaseAdmin = require('./commons/firebaseAdmin');
-// const helpers = require('./commons/helpers');
+const algoliasearch = require('algoliasearch');
+
+dotenv.load();
 
 const app = express();
 const router = express.Router();
 const port = process.env.PORT || 8008;
 
+const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
+const indexUserMetadata = algolia.initIndex('user_metadata');
+
 // ROUTES FOR OUR API
-router.get('/users/:uid', function (request, response) {
-  firebaseAdmin.auth().getUser(request.params.uid)
-    .then(function (userRecord) {
-      console.log('Successfully fetched user data: ', userRecord.toJSON());
-      response.json({ data: userRecord });
-    })
-    .catch(function (error) {
-      response.json({ error: error });
-      console.log('Error fetching user data: ', error);
-    });
+router.get('/photographers', function (request, response) {
+  indexUserMetadata.search({
+    query: request.query['filter']['destination'],
+    attributesToHighlight: ['locationMerge'],
+    facets: ['userType'],
+    facetFilters: [['userType:photographer']]
+  }, function searchDone(error, content) {
+    if (error) {
+      console.log(error);
+      throw error;
+    }
+    response.json({ data: content.hits });
+  });
 });
 
 app.use(function(request, response, next) {

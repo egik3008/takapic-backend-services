@@ -1,9 +1,10 @@
-require('dotenv').config();
-
+const dotenv = require('dotenv');
 const express = require('express');
 const json2csv = require('json2csv');
 const basicAuth = require('basic-auth');
 const firebaseAdmin = require('./commons/firebaseAdmin');
+
+dotenv.load();
 
 const auth = function (req, resp, next) {
   function unauthorized(resp) {
