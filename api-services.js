@@ -2,6 +2,8 @@ const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
 const algoliasearch = require('algoliasearch');
+const firebaseAdmin = require('./commons/firebaseAdmin');
+const helpers = require('./commons/helpers');
 
 dotenv.load();
 
@@ -26,6 +28,34 @@ router.get('/photographers', function (request, response) {
     }
     response.json({ data: content.hits });
   });
+});
+
+router.get('/photographers/:uid', function (request, response) {
+  firebaseAdmin.auth().getUser(request.params.uid)
+    .then(function (user) {
+      var email = null;
+      if (user.providerData[0].providerId == 'password') {
+        email = user.email;
+      } else {
+        email = user.providerData[0].email;
+      }
+
+      const db = firebaseAdmin.database();
+      const photographerServiceInformationRef = db.ref('photographer_service_information/' + helpers.createUIDChars(email));
+
+      photographerServiceInformationRef.once('value', function (data) {
+        const photographerServiceInformationData = data.val();
+        const userMetadataRef = db.ref('user_metadata/' + helpers.createUIDChars(email));
+
+        userMetadataRef.once('value', function (userMetadataData) {
+          photographerServiceInformationData.userMetadata = userMetadataData.val();
+          response.json({ data: photographerServiceInformationData });
+        });
+      });
+    })
+    .catch(function (error) {
+      response.json({ data: error });
+    });
 });
 
 app.use(function(request, response, next) {

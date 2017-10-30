@@ -1,15 +1,9 @@
 const dotenv = require('dotenv');
-const firebaseAdmin = require('firebase-admin');
+const firebaseAdmin = require('./commons/firebaseAdmin');
 const algoliasearch = require('algoliasearch');
 const logger = require('./commons/logger');
 
 dotenv.load();
-
-const serviceAccount = require('./serviceAccountKey.json');
-firebaseAdmin.initializeApp({
-  credential: firebaseAdmin.credential.cert(serviceAccount),
-  databaseURL: process.env.FIREBASE_DATABASE_URL
-});
 
 const database = firebaseAdmin.database();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
