@@ -3,6 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const algoliasearch = require('algoliasearch');
 const firebaseAdmin = require('./commons/firebaseAdmin');
+const Geode = require('geode');
 const helpers = require('./commons/helpers');
 
 dotenv.load();
@@ -34,7 +35,7 @@ router.get('/photographers/:uid', function (request, response) {
   firebaseAdmin.auth().getUser(request.params.uid)
     .then(function (user) {
       var email = null;
-      if (user.providerData[0].providerId == 'password') {
+      if (user.providerData[0].providerId === 'password') {
         email = user.email;
       } else {
         email = user.providerData[0].email;
@@ -56,6 +57,31 @@ router.get('/photographers/:uid', function (request, response) {
     .catch(function (error) {
       response.json({ data: error });
     });
+});
+
+router.get('/cities', function (request, response) {
+  const qry = request.query['kwd'];
+  const countryCode = request.query['countryCode'];
+  const continent = request.query['continent'];
+  const geo = new Geode('okaprinarjaya', { countryCode: countryCode, language: 'id' });
+
+  geo.search({ q: qry, continentCode: continent, featureClass: 'A' }, function (error, result) {
+    if (error) {
+      console.log(error);
+    } else {
+      var results = [];
+      result.geonames.forEach(function (item) {
+        results.push(
+          {
+            value: item.toponymName,
+            label: item.toponymName,
+            adm1: item.adminName1
+          }
+        );
+      });
+      response.json({ data: results });
+    }
+  });
 });
 
 app.use(function(request, response, next) {
