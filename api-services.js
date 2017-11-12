@@ -34,19 +34,23 @@ router.get('/photographers', function (request, response) {
 router.get('/photographers/:uid', function (request, response) {
   firebaseAdmin.auth().getUser(request.params.uid)
     .then(function (user) {
-      var email = null;
-      if (user.providerData[0].providerId === 'password') {
-        email = user.email;
+      var providerId = user.providerData[0].providerId;
+      var reference = '';
+
+      if (providerId === 'google.com') {
+        reference = 'googlecom-' + user.uid;
+      } else if (providerId === 'password') {
+        reference = helpers.createUIDChars(user.email);
       } else {
-        email = user.providerData[0].email;
+        reference = helpers.createUIDChars(user.providerData[0].email);
       }
 
       const db = firebaseAdmin.database();
-      const photographerServiceInformationRef = db.ref('photographer_service_information/' + helpers.createUIDChars(email));
+      const photographerServiceInformationRef = db.ref('photographer_service_information/' + reference);
 
       photographerServiceInformationRef.once('value', function (data) {
         const photographerServiceInformationData = data.val();
-        const userMetadataRef = db.ref('user_metadata/' + helpers.createUIDChars(email));
+        const userMetadataRef = db.ref('user_metadata/' + reference);
 
         userMetadataRef.once('value', function (userMetadataData) {
           photographerServiceInformationData.userMetadata = userMetadataData.val();
