@@ -1,7 +1,8 @@
 const dotenv = require('dotenv');
-var express = require('express');
-var stylus = require('stylus');
-var nib = require('nib');
+const express = require('express');
+const stylus = require('stylus');
+const nib = require('nib');
+const firebaseAdmin = require('./commons/firebaseAdmin');
 
 dotenv.load();
 
@@ -22,7 +23,26 @@ app.use(stylus.middleware({
 app.use(express.static(__dirname + '/web/public'));
 
 app.get('/', function (request, response) {
-  response.render('index', {});
+  if ("test" in request.query) {
+    response.render('index', {});
+
+  } else {
+    const mode = request.query['mode'];
+    if (mode === 'verifyEmail' && "oobCode" in request.query) {
+      const actionCode = request.query['oobCode'];
+      const auth = firebaseAdmin.auth();
+
+      auth.applyActionCode(actionCode)
+        .then(function () {
+          response.render('index', {});
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
+    } else {
+      response.send('Mode and params not supported');
+    }
+  }
 });
 
 app.listen(process.env.PORT_WEB_PROVIDER);
