@@ -2,7 +2,7 @@ const dotenv = require('dotenv');
 const express = require('express');
 const stylus = require('stylus');
 const nib = require('nib');
-const firebaseAdmin = require('./commons/firebaseAdmin');
+const firebaseWeb = require('./commons/firebaseWeb');
 
 dotenv.load();
 
@@ -30,7 +30,7 @@ app.get('/', function (request, response) {
     const mode = request.query['mode'];
     if (mode === 'verifyEmail' && "oobCode" in request.query) {
       const actionCode = request.query['oobCode'];
-      const auth = firebaseAdmin.auth();
+      const auth = firebaseWeb.auth();
 
       auth.applyActionCode(actionCode)
         .then(function () {
@@ -38,6 +38,7 @@ app.get('/', function (request, response) {
         })
         .catch(function (error) {
           console.log(error);
+          response.send('Error occured');
         });
     } else {
       response.send('Mode and params not supported');
