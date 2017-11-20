@@ -1,6 +1,7 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
+const axios = require('axios');
 const algoliasearch = require('algoliasearch');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 const Geode = require('geode');
@@ -86,6 +87,16 @@ router.get('/cities', function (request, response) {
       response.json({ data: results });
     }
   });
+});
+
+router.get('/currencyExchangeRates', function (request, response) {
+  axios.get('http://apilayer.net/api/live?access_key=1aa6b5189fe7e7dc51f1189fe02008b4&source=USD&format=1')
+    .then(function (result) {
+      response.json({ data: result.data.quotes });
+    })
+    .catch(function (error) {
+      response.json({ data: error });
+    });
 });
 
 app.use(function(request, response, next) {
