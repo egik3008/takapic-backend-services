@@ -26,9 +26,10 @@ router.get('/photographers', function (request, response) {
   }, function searchDone(error, content) {
     if (error) {
       console.log(error);
-      throw error;
+      response.json({ data: [] });
+    } else {
+      response.json({ data: content.hits });
     }
-    response.json({ data: content.hits });
   });
 });
 
