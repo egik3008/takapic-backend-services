@@ -106,6 +106,27 @@ app.use(function(request, response, next) {
   next();
 });
 
+router.get('/locations', function (request, response) {
+  indexUserMetadata.search({
+    query: request.query.keyword,
+    distinct: true,
+    attributesToHighlight: ['countryName'],
+    facets: ['userType'],
+    facetFilters: [['userType:photographer']],
+    attributesToRetrieve: ['countryName', 'locationAdmLevel1', 'locationAdmLevel2']
+  }, function searchDone(error, content) {
+    if (error) {
+      console.log(error);
+      response.json({ data: [] });
+    } else {
+      const results = content.hits.map(function (item) {
+        return { label: item.locationAdmLevel2 + ', ' + item.locationAdmLevel1 + ', ' + item.countryName };
+      });
+      response.json({ data: results });
+    }
+  });
+});
+
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
