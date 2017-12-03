@@ -34,30 +34,28 @@ router.get('/photographers', function (request, response) {
 });
 
 router.get('/photographers/:uid', function (request, response) {
-  firebaseAdmin.auth().getUser(request.params.uid)
+  const uid = request.params.uid;
+  firebaseAdmin.auth().getUser(uid)
     .then(function (user) {
-      var providerId = user.providerData[0].providerId;
-      var reference = '';
-
-      if (providerId === 'google.com') {
-        reference = 'googlecom-' + user.uid;
-      } else if (providerId === 'password') {
-        reference = helpers.createUIDChars(user.email);
-      } else {
-        reference = helpers.createUIDChars(user.providerData[0].email);
-      }
-
       const db = firebaseAdmin.database();
-      const photographerServiceInformationRef = db.ref('photographer_service_information/' + reference);
+      const photographerServiceInformationRef = db.ref('photographer_service_information/' + uid);
 
       photographerServiceInformationRef.once('value', function (data) {
         const photographerServiceInformationData = data.val();
-        const userMetadataRef = db.ref('user_metadata/' + reference);
+        if (photographerServiceInformationData) {
+          const userMetadataRef = db.ref('user_metadata/' + uid);
 
-        userMetadataRef.once('value', function (userMetadataData) {
-          photographerServiceInformationData.userMetadata = userMetadataData.val();
-          response.json({ data: photographerServiceInformationData });
-        });
+          userMetadataRef.once('value', function (userMetadataData) {
+            photographerServiceInformationData.userMetadata = userMetadataData.val();
+            response.json({ data: photographerServiceInformationData });
+          });
+
+        } else {
+          const userMetadataRef = db.ref('user_metadata/' + uid);
+          userMetadataRef.once('value', function (userMetadataData) {
+            response.json({ data: { userMetadata: userMetadataData.val() } });
+          });
+        }
       });
     })
     .catch(function (error) {
@@ -88,16 +86,6 @@ router.get('/cities', function (request, response) {
       response.json({ data: results });
     }
   });
-});
-
-router.get('/currencyExchangeRates', function (request, response) {
-  axios.get('http://apilayer.net/api/live?access_key=1aa6b5189fe7e7dc51f1189fe02008b4&source=USD&format=1')
-    .then(function (result) {
-      response.json({ data: result.data.quotes });
-    })
-    .catch(function (error) {
-      response.json({ data: error });
-    });
 });
 
 app.use(function(request, response, next) {
