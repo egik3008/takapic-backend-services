@@ -1,11 +1,9 @@
 const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
-const axios = require('axios');
 const algoliasearch = require('algoliasearch');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 const Geode = require('geode');
-const helpers = require('./commons/helpers');
 
 dotenv.load();
 
@@ -18,8 +16,11 @@ const indexUserMetadata = algolia.initIndex('user_metadata');
 
 // ROUTES FOR OUR API
 router.get('/photographers', function (request, response) {
+  var destination = request.query['filter']['destination'];
+  destination = destination === 'Anywhere' ? '' : destination;
+
   indexUserMetadata.search({
-    query: request.query['filter']['destination'],
+    query: destination,
     attributesToHighlight: ['locationMerge'],
     facets: ['userType'],
     facetFilters: [['userType:photographer']]
@@ -33,34 +34,43 @@ router.get('/photographers', function (request, response) {
   });
 });
 
+router.get('/topPhotographers', function (request, response) {
+  indexUserMetadata.search({
+    attributesToHighlight: ['locationMerge'],
+    facets: ['topPhotographer', 'userType'],
+    facetFilters: [['topPhotographer:true']]
+  }, function searchDone(error, content) {
+    if (error) {
+      console.log(error);
+      response.json({ data: [] });
+    } else {
+      response.json({ data: content.hits });
+    }
+  });
+});
+
 router.get('/photographers/:uid', function (request, response) {
   const uid = request.params.uid;
-  firebaseAdmin.auth().getUser(uid)
-    .then(function (user) {
-      const db = firebaseAdmin.database();
-      const photographerServiceInformationRef = db.ref('photographer_service_information/' + uid);
+  const db = firebaseAdmin.database();
+  const photographerServiceInformationRef = db.ref('photographer_service_information/' + uid);
 
-      photographerServiceInformationRef.once('value', function (data) {
-        const photographerServiceInformationData = data.val();
-        if (photographerServiceInformationData) {
-          const userMetadataRef = db.ref('user_metadata/' + uid);
+  photographerServiceInformationRef.once('value', function (data) {
+    const photographerServiceInformationData = data.val();
+    if (photographerServiceInformationData) {
+      const userMetadataRef = db.ref('user_metadata/' + uid);
 
-          userMetadataRef.once('value', function (userMetadataData) {
-            photographerServiceInformationData.userMetadata = userMetadataData.val();
-            response.json({ data: photographerServiceInformationData });
-          });
-
-        } else {
-          const userMetadataRef = db.ref('user_metadata/' + uid);
-          userMetadataRef.once('value', function (userMetadataData) {
-            response.json({ data: { userMetadata: userMetadataData.val() } });
-          });
-        }
+      userMetadataRef.once('value', function (userMetadataData) {
+        photographerServiceInformationData.userMetadata = userMetadataData.val();
+        response.json({ data: photographerServiceInformationData });
       });
-    })
-    .catch(function (error) {
-      response.json({ data: error });
-    });
+
+    } else {
+      const userMetadataRef = db.ref('user_metadata/' + uid);
+      userMetadataRef.once('value', function (userMetadataData) {
+        response.json({ data: { userMetadata: userMetadataData.val() } });
+      });
+    }
+  });
 });
 
 router.get('/cities', function (request, response) {
