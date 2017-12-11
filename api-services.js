@@ -9,10 +9,10 @@ dotenv.load();
 
 const app = express();
 const router = express.Router();
-const port = process.env.PORT || 8008;
+const port = process.env.PORT_API_SERVICES;
 
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
-const indexUserMetadata = algolia.initIndex('user_metadata');
+const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADATA);
 
 // ROUTES FOR OUR API
 router.get('/photographers', function (request, response) {

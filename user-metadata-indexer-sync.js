@@ -7,8 +7,8 @@ dotenv.load();
 
 const database = firebaseAdmin.database();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
-const indexUserMetadata = algolia.initIndex('user_metadata');
-const userMetadataRef = database.ref('/user_metadata');
+const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADATA);
+const userMetadataRef = database.ref('user_metadata');
 
 userMetadataRef.on('child_added', addOrUpdateIndex);
 userMetadataRef.on('child_changed', addOrUpdateIndex);

@@ -4,12 +4,12 @@ const firebaseWeb = require('firebase');
 dotenv.load();
 
 const config = {
-  apiKey: 'AIzaSyDSrUpNAUexu_aZe0QdXapw91vZN9PbrfE',
-  authDomain: 'takapic-project.firebaseapp.com',
-  databaseURL: process.env.FIREBASE_DATABASE_URL,
-  projectId: 'takapic-project',
-  storageBucket: 'takapic-project.appspot.com',
-  messagingSenderId: '839607725532'
+  apiKey: process.env.FIREBASE_WEB_API_KEY,
+  authDomain: process.env.FIREBASE_WEB_AUTH_DOMAIN,
+  databaseURL: process.env.FIREBASE_WEB_DATABASE_URL,
+  projectId: process.env.FIREBASE_WEB_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_WEB_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_WEB_MESSAGING_SENDER_ID
 };
 
 const app = firebaseWeb.initializeApp(config);
