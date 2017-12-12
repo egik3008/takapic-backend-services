@@ -9,3 +9,6 @@ logs/*.log
 
 .env
 nohup.out
+
+serviceAccountPrivateKeyDEV.json
+serviceAccountPrivateKeyPROD.json
