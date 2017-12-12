@@ -24,7 +24,9 @@ app.use(express.static(__dirname + '/web/public'));
 
 app.get('/', function (request, response) {
   if ("test" in request.query) {
-    response.render('index', {});
+    response.render('index', {
+      afterEmailVerificationRedirectionUrl: process.env.AFTER_EMAIL_VERIFICATION_REDIRECTION_URL
+    });
 
   } else {
     const mode = request.query['mode'];
