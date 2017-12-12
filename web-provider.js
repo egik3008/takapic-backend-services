@@ -34,7 +34,9 @@ app.get('/', function (request, response) {
 
       auth.applyActionCode(actionCode)
         .then(function () {
-          response.render('index', {});
+          response.render('index', {
+            afterEmailVerificationRedirectionUrl: process.env.AFTER_EMAIL_VERIFICATION_REDIRECTION_URL
+          });
         })
         .catch(function (error) {
           console.log(error);
