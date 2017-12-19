@@ -4,6 +4,7 @@ const bodyparser = require('body-parser');
 const stylus = require('stylus');
 const nib = require('nib');
 const paypal = require('paypal-rest-sdk');
+const braintree = require('braintree');
 const firebaseWeb = require('./commons/firebaseWeb');
 
 dotenv.load();
@@ -14,6 +15,12 @@ function compileCSS(str, path) {
 
 const app = express();
 const router = express.Router();
+const gateway = braintree.connect({
+  environment: braintree.Environment['Sandbox'],
+  merchantId: '4cm4s6c4wxpf7zp8',
+  publicKey: 'y9p3crmh2pqyx8r5',
+  privateKey: '813da30a3117a475c5766a8b026d92aa'
+});
 
 app.set('views', __dirname + '/web/views');
 app.set('view engine', 'pug');
@@ -60,53 +67,39 @@ router.get('/email-action-handler/verify-email', function (request, response) {
 });
 
 router.post('/payment/create', function (request, response) {
-  paypal.configure({
-    mode: process.env.PAYPAL_MODE,
-    client_id: process.env.PAYPAL_REST_API_CLIENT_ID,
-    client_secret: process.env.PAYPAL_REST_API_CLIENT_SECRET
-  });
+  const TRANSACTION_SUCCESS_STATUSES = [
+    braintree.Transaction.Status.Authorizing,
+    braintree.Transaction.Status.Authorized,
+    braintree.Transaction.Status.Settled,
+    braintree.Transaction.Status.Settling,
+    braintree.Transaction.Status.SettlementConfirmed,
+    braintree.Transaction.Status.SettlementPending,
+    braintree.Transaction.Status.SubmittedForSettlement
+  ];
 
-  const create_payment_json = {
-    "intent": "sale",
-    "payer": {
-      "payment_method": "paypal"
-    },
-    "redirect_urls": {
-      "return_url": "http://localhost:8484/web-provider/payment/success",
-      "cancel_url": "http://localhost:8484/web-provider/payment/cancel"
-    },
-    "transactions": [{
-      "item_list": {
-        "items": [{
-          "name": "Photographer Reservation",
-          "sku": "OVEIMFPA",
-          "price": "10.00",
-          "currency": "USD",
-          "quantity": 1
-        }]
-      },
-      "amount": {
-        "currency": "USD",
-        "total": "10.00"
-      },
-      "description": "Pay reservation."
-    }]
-  };
-
-  paypal.payment.create(create_payment_json, function (error, payment) {
-    if (error) {
-      throw error;
-    } else {
-      console.log("Create Payment Response");
-      console.log(payment);
-      response.setHeader('Content-Type', 'application/json');
-      response.send(JSON.stringify(payment));
+  gateway.transaction.sale({
+    amount: '10.00',
+    paymentMethodNonce: '63e30606-6544-08b9-256b-2addc521c2e0',
+    options: {
+      submitForSettlement: true
     }
+  }, function (error, result) {
+    if (result) {
+      response.send(result);
+    } else {
+      response.status(500).send(error);
+    }
+  })
+});
+
+router.get('/checkouts/new', function (request, response) {
+  gateway.clientToken.generate({}, function (error, result) {
+    console.log(result);
   });
 });
 
 router.get('/payment/success', function (request, response) {
-  const payerId = request.query.PayerID;
+  /*const payerId = request.query.PayerID;
   const paymentId = request.query.paymentId;
 
   var execute_payment_json = {
@@ -128,7 +121,7 @@ router.get('/payment/success', function (request, response) {
       console.log(JSON.stringify(payment));
       response.send('Success');
     }
-  });
+  });*/
 });
 
 router.get('/payment/cancel', function (request, response) {
