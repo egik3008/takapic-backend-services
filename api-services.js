@@ -2,14 +2,22 @@ const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
 const algoliasearch = require('algoliasearch');
-const firebaseAdmin = require('./commons/firebaseAdmin');
 const Geode = require('geode');
+const braintree = require('braintree');
+const firebaseAdmin = require('./commons/firebaseAdmin');
 
 dotenv.load();
 
 const app = express();
 const router = express.Router();
 const port = process.env.PORT_API_SERVICES;
+
+const gateway = braintree.connect({
+  environment: braintree.Environment[process.env.BT_ENVIRONMENT],
+  merchantId: process.env.BT_MERCHANT_ID,
+  publicKey: process.env.BT_PUBLIC_KEY,
+  privateKey: process.env.BT_PRIVATE_KEY
+});
 
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
 const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADATA);
@@ -98,12 +106,6 @@ router.get('/cities', function (request, response) {
   });
 });
 
-app.use(function(request, response, next) {
-  response.header("Access-Control-Allow-Origin", "*");
-  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-  next();
-});
-
 router.get('/locations', function (request, response) {
   indexUserMetadata.search({
     query: request.query.keyword,
@@ -123,6 +125,44 @@ router.get('/locations', function (request, response) {
       response.json({ data: results });
     }
   });
+});
+
+router.post('/payment/create', function (request, response) {
+  const configs = {
+    amount: request.body.amount,
+    paymentMethodNonce: request.body.paymentMethodNonce,
+    options: {
+      submitForSettlement: true
+    }
+  };
+
+  if (request.body.paymentType === 'PayPalAccount') {
+    configs.options.paypal = {
+      description: 'Payment for photographer reservation #' + request.body.orderId
+    }
+  } else {
+    configs.orderId = request.body.orderId;
+  }
+
+  gateway.transaction.sale(configs, function (error, result) {
+    if (result) {
+      response.send(result);
+    } else {
+      response.status(500).send(error);
+    }
+  });
+});
+
+router.get('/payment/token', function (request, response) {
+  gateway.clientToken.generate({}, function (error, result) {
+    console.log(result);
+  });
+});
+
+app.use(function(request, response, next) {
+  response.header("Access-Control-Allow-Origin", "*");
+  response.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
 });
 
 app.use(bodyParser.urlencoded({ extended: true }));
