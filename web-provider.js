@@ -3,7 +3,6 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const stylus = require('stylus');
 const nib = require('nib');
-const paypal = require('paypal-rest-sdk');
 const braintree = require('braintree');
 const firebaseWeb = require('./commons/firebaseWeb');
 
@@ -67,65 +66,35 @@ router.get('/email-action-handler/verify-email', function (request, response) {
 });
 
 router.post('/payment/create', function (request, response) {
-  const TRANSACTION_SUCCESS_STATUSES = [
-    braintree.Transaction.Status.Authorizing,
-    braintree.Transaction.Status.Authorized,
-    braintree.Transaction.Status.Settled,
-    braintree.Transaction.Status.Settling,
-    braintree.Transaction.Status.SettlementConfirmed,
-    braintree.Transaction.Status.SettlementPending,
-    braintree.Transaction.Status.SubmittedForSettlement
-  ];
-
-  gateway.transaction.sale({
-    amount: '10.00',
-    paymentMethodNonce: '63e30606-6544-08b9-256b-2addc521c2e0',
+  const configs = {
+    amount: request.body.amount,
+    paymentMethodNonce: request.body.paymentMethodNonce,
     options: {
       submitForSettlement: true
     }
-  }, function (error, result) {
+  };
+
+  if (request.body.paymentType === 'PayPalAccount') {
+    configs.options.paypal = {
+      description: 'Payment for photographer reservation #' + request.body.orderId
+    }
+  } else {
+    configs.orderId = request.body.orderId;
+  }
+
+  gateway.transaction.sale(configs, function (error, result) {
     if (result) {
       response.send(result);
     } else {
       response.status(500).send(error);
     }
-  })
-});
-
-router.get('/checkouts/new', function (request, response) {
-  gateway.clientToken.generate({}, function (error, result) {
-    console.log(result);
   });
 });
 
-router.get('/payment/success', function (request, response) {
-  /*const payerId = request.query.PayerID;
-  const paymentId = request.query.paymentId;
-
-  var execute_payment_json = {
-    "payer_id": payerId,
-    "transactions": [{
-      "amount": {
-        "currency": "USD",
-        "total": "10.00"
-      }
-    }]
-  };
-
-  paypal.payment.execute(paymentId, execute_payment_json, function (error, payment) {
-    if (error) {
-      console.log(error.response);
-      throw error;
-    } else {
-      console.log("Get Payment Response");
-      console.log(JSON.stringify(payment));
-      response.send('Success');
-    }
-  });*/
-});
-
-router.get('/payment/cancel', function (request, response) {
-  response.send('Cancelled');
+router.get('/payment/token', function (request, response) {
+  gateway.clientToken.generate({}, function (error, result) {
+    console.log(result);
+  });
 });
 
 app.use(bodyparser.urlencoded({ extended: true }));
