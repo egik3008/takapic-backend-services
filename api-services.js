@@ -26,8 +26,6 @@ const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADA
 // ROUTES FOR OUR API
 router.get('/photographers', function (request, response) {
   var destination = request.query['filter']['destination'];
-  destination = destination === 'Anywhere' ? '' : destination;
-
   indexUserMetadata.search({
     query: destination,
     attributesToHighlight: ['locationMerge'],
