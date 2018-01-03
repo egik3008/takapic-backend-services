@@ -234,7 +234,6 @@ router.delete('/cloudinary-images/delete', function (request, response) {
 });
 
 router.get('/google-sign-in', function (request, response) {
-  console.log('/google-sign-in', request);
   response.redirect(301, process.env.GOOGLE_SIGN_IN_REDIRECT);
 });
 
