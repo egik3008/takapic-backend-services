@@ -26,12 +26,19 @@ const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADA
 // ROUTES FOR OUR API
 router.get('/photographers', function (request, response) {
   var destination = request.query['filter']['destination'];
-  indexUserMetadata.search({
+  var date = request.query['filter']['date'];
+  var search = {
     query: destination,
     attributesToHighlight: ['locationMerge'],
     facets: ['userType'],
     facetFilters: [['userType:photographer']]
-  }, function searchDone(error, content) {
+  };
+
+  if (date !== '') {
+    search.filters = 'NOT notAvailableDates:' + date;
+  }
+
+  indexUserMetadata.search(search, function searchDone(error, content) {
     if (error) {
       console.log(error);
       response.json({ data: [] });
