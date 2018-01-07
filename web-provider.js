@@ -3,7 +3,7 @@ const express = require('express');
 const bodyparser = require('body-parser');
 const stylus = require('stylus');
 const nib = require('nib');
-const firebaseWeb = require('./commons/firebaseWeb');
+const firebaseAdmin = require('./commons/firebaseAdmin');
 
 dotenv.load();
 
@@ -21,23 +21,31 @@ router.get('/email-action-handler/verify-email', function (request, response) {
     });
 
   } else {
-    const mode = request.query['mode'];
-    if (mode === 'verifyEmail' && "oobCode" in request.query) {
-      const actionCode = request.query['oobCode'];
-      const auth = firebaseWeb.auth();
-
-      auth.applyActionCode(actionCode)
-        .then(function () {
-          response.render('index', {
-            afterEmailVerificationRedirectionUrl: process.env.AFTER_EMAIL_VERIFICATION_REDIRECTION_URL
+    if ("uid" in request.query) {
+      const uid = request.query.uid.trim();
+      if (uid !== '') {
+        const auth = firebaseAdmin.auth();
+        auth
+          .updateUser(uid, {
+            emailVerified: true
+          })
+          .then(function (user) {
+            console.log('Success verifying email');
+            response.render('index', {
+              afterEmailVerificationRedirectionUrl: process.env.AFTER_EMAIL_VERIFICATION_REDIRECTION_URL
+            });
+          })
+          .catch(function (error) {
+            console.log(error);
+            response.status(500).send(error);
           });
-        })
-        .catch(function (error) {
-          console.log(error);
-          response.send('Error occured');
-        });
+
+      } else {
+        response.send('Params not supported');
+      }
+
     } else {
-      response.send('Mode and params not supported');
+      response.send('Params not supported');
     }
   }
 });

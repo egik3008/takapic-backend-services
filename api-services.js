@@ -4,6 +4,8 @@ const bodyParser = require('body-parser');
 const algoliasearch = require('algoliasearch');
 const Geode = require('geode');
 const axios = require('axios');
+const sgMail = require('@sendgrid/mail');
+const pug = require('pug');
 const braintree = require('braintree');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 
@@ -12,6 +14,8 @@ dotenv.load();
 const app = express();
 const router = express.Router();
 const port = process.env.PORT_API_SERVICES;
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 const gateway = braintree.connect({
   environment: braintree.Environment[process.env.BT_ENVIRONMENT],
@@ -237,6 +241,41 @@ router.delete('/cloudinary-images/delete', function (request, response) {
       if (error) {
         response.status(500).send(error);
       }
+    });
+});
+
+router.post('/email-service/email-verification', function (request, response) {
+  const receiverEmail = request.body.receiverEmail;
+  const receiverName = request.body.receiverName;
+  const uid = request.body.uid;
+  const compiledFunction = pug.compileFile('email-templates/email-verification.pug');
+
+  const msg = {
+    to: {
+      name: receiverName,
+      email: receiverEmail
+    },
+    from: {
+      name: 'Takapic',
+      email: 'admin@takapic.com'
+    },
+    subject: 'Verify your email for Takapic',
+    html: compiledFunction({
+      BASE_HOSTNAME: process.env.BASE_HOSTNAME,
+      EMAIL_TITLE: 'Verify your email for Takapic',
+      UID: uid,
+      CUSTOMER_NAME: receiverName
+    })
+  };
+
+  sgMail
+    .send(msg)
+    .then(function () {
+      response.send({ status: 'OK' });
+    })
+    .catch(function (error) {
+      console.log(error);
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
     });
 });
 

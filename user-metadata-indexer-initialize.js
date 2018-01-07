@@ -13,19 +13,31 @@ userMetadataRef.once('value', initialImport);
 
 function initialImport(dataSnapshot) {
   const objectsToIndex = [];
+
   dataSnapshot.forEach((function (childSnapshot) {
-    const childKey = childSnapshot.key;
     const childData = childSnapshot.val();
-    childData.objectID = childKey;
-    objectsToIndex.push(childData);
+    if (
+      childData.userType === 'photographer' &&
+      childData.hasOwnProperty('photoProfilePublicId') &&
+      childData.hasOwnProperty('phoneNumber') &&
+      childData.hasOwnProperty('defaultDisplayPicturePublicId')
+    ) {
+      childData.objectID = childSnapshot.key;
+      objectsToIndex.push(childData);
+    }
   }));
 
-  indexUserMetadata.saveObjects(objectsToIndex, function (error, content) {
-    if (error) {
-      throw error;
-    }
+  if (objectsToIndex.length > 0) {
+    indexUserMetadata.saveObjects(objectsToIndex, function (error, content) {
+      if (error) {
+        throw error;
+      }
 
-    console.log('Firebase -> Algolia import done');
-    process.exit(0);
-  });
+      console.log('Firebase -> Algolia import done');
+    });
+
+  } else {
+    console.log('No data imported');
+  }
+  process.exit(0);
 }

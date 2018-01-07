@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^6.1.4",
     "algoliasearch": "^3.24.5",
     "axios": "^0.17.1",
     "basic-auth": "^2.0.0",

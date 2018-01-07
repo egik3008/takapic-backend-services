@@ -16,15 +16,22 @@ userMetadataRef.on('child_removed', deleteIndex);
 
 function addOrUpdateIndex(data) {
   const firebaseObject = data.val();
-  firebaseObject.objectID = data.key;
-  indexUserMetadata.saveObject(firebaseObject, function (error, content) {
-    if (error) {
-      logger.error('Failed to add index: ' + error.message);
-      throw error;
-    }
-    logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID);
-    logger.info(content);
-  })
+  if (
+    firebaseObject.userType === 'photographer' &&
+    firebaseObject.hasOwnProperty('photoProfilePublicId') &&
+    firebaseObject.hasOwnProperty('phoneNumber') &&
+    firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId')
+  ) {
+    firebaseObject.objectID = data.key;
+    indexUserMetadata.saveObject(firebaseObject, function (error, content) {
+      if (error) {
+        logger.error('Failed to add index: ' + error.message);
+        throw error;
+      }
+      logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID);
+      logger.info(content);
+    });
+  }
 }
 
 function deleteIndex(data) {
