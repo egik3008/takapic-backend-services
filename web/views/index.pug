@@ -1,8 +1,15 @@
 extends layout
 
 block content
-  h2 Congratulation! Your email has been verified
-  p You can now go to #[a(href=afterEmailVerificationRedirectionUrl) Sign In] page to sign in with your new account
-  br
-  br
-  img(src="/images/checked.png")
+  .row
+    div(class='col-md-6 col-md-offset-3 col-xs-12 col-xs-offset-0' style='padding-right: 0')
+      .card
+        img(src='/images/Logo-250px.png' class='img-responsive' style='height: 70px; width: auto; display: inline;')
+        h4(style='display: inline;') Email Verification
+        hr(style='margin-top: 0; margin-bottom: 40px')/
+        img(src='/images/checked.png' style='height: 150px; width: auto; margin-bottom: 30px; margin-top: 30px' class='img-responsive img-center')
+        br/
+        h4 Congratulation! Your email has been verified
+        p You can now go to #[a(href=afterEmailVerificationRedirectionUrl) Sign In] page to sign in with your new account
+        br/
+        br/
