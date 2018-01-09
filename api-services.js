@@ -279,6 +279,43 @@ router.post('/email-service/email-verification', function (request, response) {
     });
 });
 
+router.post('/email-service/contact-takapic', function (request, response) {
+  const consumerEmail = request.body.consumerEmail;
+  const consumerName = request.body.consumerName;
+  const topic = request.body.topic;
+  const description = request.body.description;
+  const compiledFunction = pug.compileFile('email-templates/contact-takapic.pug');
+
+  const msg = {
+    to: {
+      name: 'Takapic Support',
+      email: 'support@takapic.com'
+    },
+    from: {
+      name: consumerName,
+      email: consumerEmail
+    },
+    subject: 'Contact Takapic - ' + topic,
+    html: compiledFunction({
+      EMAIL_TITLE: 'Contact Takapic - ' + topic,
+      CONSUMER: consumerName,
+      EMAIL: consumerEmail,
+      TOPIC: topic,
+      DESCRIPTION: description
+    })
+  };
+
+  sgMail
+    .send(msg)
+    .then(function () {
+      response.send({ status: 'OK' });
+    })
+    .catch(function (error) {
+      console.log(error);
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
+    });
+});
+
 router.get('/google-sign-in', function (request, response) {
   response.redirect(301, process.env.GOOGLE_SIGN_IN_REDIRECT);
 });

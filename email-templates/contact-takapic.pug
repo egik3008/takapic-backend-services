@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  p(class='customer-hello') Attention please,
+  p #{CONSUMER} is contacting us and the following details of the information submitted.
+  hr/
+  p Name: #{CONSUMER}
+  p Email: #{EMAIL}
+  p Topic: #{TOPIC}
+  p Description: #[br/] #{DESCRIPTION}
+  hr/
+  p Thanks,
+  p Our Takapic System
