@@ -95,7 +95,7 @@ router.get('/cities', function (request, response) {
   const qry = request.query['kwd'];
   const countryCode = request.query['countryCode'];
   const continent = request.query['continent'];
-  const geo = new Geode('okaprinarjaya', { countryCode: countryCode, language: 'id' });
+  const geo = new Geode('okaprinarjaya', { countryCode: countryCode });
 
   geo.search({ q: qry, continentCode: continent, featureClass: 'A' }, function (error, result) {
     if (error) {
