@@ -67,13 +67,13 @@ db
     data.photographers["total-photographers"] = countP;
     data.photographers["total-travellers"] = countT;
 
-    stringInformation = "\n*Total photographers = " + data.photographers["total-photographers"] + "*\n";
+    stringInformation = "\n*Total photographers: " + data.photographers["total-photographers"] + "*\n";
     stringInformation += "======================================================================================\n";
 
     Object.keys(data.photographers).map(function (keykey) {
       if (keykey !== 'total-photographers' && keykey !== 'total-travellers') {
         const itemInfo = data.photographers[keykey];
-        stringInformation += "*" + keykey + "*\n";
+        stringInformation += "*" + keykey + " - Total: " + itemInfo.length + "*\n";
         stringInformation += "======================================================================================\n";
         itemInfo.map(function (item) {
           stringInformation += "UID = " + item.uid + "\n";
@@ -104,6 +104,7 @@ db
       })
       .then(function (response) {
         console.log(response.data);
+        process.exit(0);
       })
       .catch(function (error) {
         console.log(error);
