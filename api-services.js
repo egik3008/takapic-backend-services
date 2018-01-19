@@ -316,6 +316,23 @@ router.post('/email-service/contact-takapic', function (request, response) {
     });
 });
 
+router.post('/slack-integration/notify-userbase-status', function (request, response) {
+  const text = request.body.text;
+  axios
+    .post('https://hooks.slack.com/services/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', {
+      username: "userbase-status-notification",
+      text: text,
+      icon_emoji: ":information_desk_person:"
+    })
+    .then(function (result) {
+      return response.status(204).send();
+    })
+    .catch(function (error) {
+      console.log(error);
+      return response.status(204).send();
+    });
+});
+
 router.get('/google-sign-in', function (request, response) {
   response.redirect(301, process.env.GOOGLE_SIGN_IN_REDIRECT);
 });
