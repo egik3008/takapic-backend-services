@@ -333,6 +333,19 @@ router.post('/slack-integration/notify-userbase-status', function (request, resp
     });
 });
 
+router.get('/auth/accountType', function (request, response) {
+  firebaseAdmin
+    .auth()
+    .getUserByEmail(request.query.email)
+    .then(function (record) {
+      const data = record.toJSON();
+      response.json({ status: 'ok', data: data.providerData });
+    })
+    .catch(function (error) {
+      response.status(500).send({ status: 'error', message: error.message });
+    });
+});
+
 router.get('/google-sign-in', function (request, response) {
   response.redirect(301, process.env.GOOGLE_SIGN_IN_REDIRECT);
 });
