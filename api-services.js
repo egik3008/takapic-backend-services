@@ -33,6 +33,8 @@ router.get('/photographers', function (request, response) {
   var date = request.query['filter']['date'];
   var search = {
     query: destination,
+    hitsPerPage: 6,
+    page: request.query['filter']['page'],
     attributesToHighlight: ['locationMerge'],
     facets: ['userType'],
     facetFilters: [['userType:photographer']]
@@ -47,7 +49,15 @@ router.get('/photographers', function (request, response) {
       console.log(error);
       response.json({ data: [] });
     } else {
-      response.json({ data: content.hits });
+      response.json({
+        data: content.hits,
+        metaInfo: {
+          nbHits: content.nbHits,
+          page: content.page,
+          nbPages: content.nbPages,
+          hitsPerPage: content.hitsPerPage
+        }
+      });
     }
   });
 });
