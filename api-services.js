@@ -33,7 +33,7 @@ router.get('/photographers', function (request, response) {
   var date = request.query['filter']['date'];
   var search = {
     query: destination,
-    hitsPerPage: 6,
+    hitsPerPage: process.env.ALGOLIA_HITS_PER_PAGE,
     page: request.query['filter']['page'],
     attributesToHighlight: ['locationMerge'],
     facets: ['userType'],
