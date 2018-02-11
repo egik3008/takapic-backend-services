@@ -80,4 +80,31 @@ router.post('/contact-takapic', function (request, response) {
     });
 });
 
+router.post('/cashout-request', function (request, response) {
+  const compiledFunction = pug.compileFile('email-templates/cashout.pug');
+
+  const msg = {
+    to: {
+      name: 'Takapic Support',
+      email: 'support@takapic.com'
+    },
+    from: {
+      name: request.body.REQUESTER,
+      email: request.body.EMAIL
+    },
+    subject: 'Cash out Request - ' + request.body.REQUESTER,
+    html: compiledFunction(request.body)
+  };
+
+  sgMail
+    .send(msg)
+    .then(function () {
+      response.send({ status: 'OK' });
+    })
+    .catch(function (error) {
+      console.log(error);
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
+    });
+});
+
 module.exports = router;

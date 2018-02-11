@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  p Cash out Request
+  p Details:
+  table
+    tbody
+      tr
+        th Requester
+        td #{REQUESTER}
+      tr
+        th UID
+        td #{UID}
+      tr
+        th Email
+        td #{EMAIL}
+      tr
+        th Amount
+        td #{AMOUNT}
+      tr
+        th Payment type
+        td #{PAYMENT_TYPE}
+      tr
+        th Paypal email
+        td #{PAYPAL_EMAIL}
+      tr
+        th Bank name
+        td #{BANK_NAME}
+      tr
+        th Bank account number
+        td #{BANK_ACCOUNT_NUMBER}
+      tr
+        th Created
+        td #{CREATED}
