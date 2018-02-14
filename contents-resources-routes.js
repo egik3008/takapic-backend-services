@@ -10,6 +10,30 @@ const router = express.Router();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
 const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADATA);
 
+function fetchCurrencies() {
+  return new Promise(function (resolve, reject) {
+    firebaseAdmin
+      .database()
+      .ref('currency_exchange_rates')
+      .once('value')
+      .then(function (snapshot) {
+        resolve(snapshot.val());
+      })
+      .catch(function (error) {
+        reject(error);
+      });
+  });
+}
+
+function convertPriceCurrency(rows, priceKey, currencies, currency) {
+  return rows.map(function (item) {
+    const useCurrency = !currency ? item.currency : currency;
+    const USDRates = currencies['USD' + useCurrency];
+    item[priceKey] = Math.round(item[priceKey] / USDRates);
+    return item;
+  });
+}
+
 router.get('/photographers', function (request, response) {
   var destination = request.query['filter']['destination'];
   var date = request.query['filter']['date'];
@@ -26,22 +50,31 @@ router.get('/photographers', function (request, response) {
     search.filters = 'NOT notAvailableDates:' + date;
   }
 
-  indexUserMetadata.search(search, function searchDone(error, content) {
-    if (error) {
-      console.log(error);
-      response.json({ data: [] });
-    } else {
-      response.json({
-        data: content.hits,
-        metaInfo: {
-          nbHits: content.nbHits,
-          page: content.page,
-          nbPages: content.nbPages,
-          hitsPerPage: content.hitsPerPage
+  fetchCurrencies()
+    .then(function (currencies) {
+      indexUserMetadata.search(search, function searchDone(error, content) {
+        if (error) {
+          console.error(error);
+          response.json({ data: [] });
+
+        } else {
+          const convertedData = convertPriceCurrency(content.hits, 'priceStartFrom', currencies);
+          response.json({
+            data: convertedData,
+            metaInfo: {
+              nbHits: content.nbHits,
+              page: content.page,
+              nbPages: content.nbPages,
+              hitsPerPage: content.hitsPerPage
+            }
+          });
         }
       });
-    }
-  });
+    })
+    .catch(function (error) {
+      console.error(error);
+      response.json({ data: [] });
+    });
 });
 
 router.get('/topPhotographers', function (request, response) {
@@ -60,28 +93,45 @@ router.get('/topPhotographers', function (request, response) {
 });
 
 router.get('/photographers/:uid', function (request, response) {
-  const uid = request.params.uid;
-  const db = firebaseAdmin.database();
+  fetchCurrencies()
+    .then(function (currencies) {
+      const uid = request.params.uid;
+      const db = firebaseAdmin.database();
 
-  db
-    .ref('photographer_service_information')
-    .child(uid)
-    .once('value')
-    .then(function (data) {
-      const photographerServiceInformationData = data.val();
-      if (photographerServiceInformationData) {
-        db
-          .ref('user_metadata')
-          .child(uid)
-          .once('value')
-          .then(function (userMetadataData) {
-            photographerServiceInformationData.userMetadata = userMetadataData.val();
-            response.json({ data: photographerServiceInformationData });
-          });
+      db
+        .ref('photographer_service_information')
+        .child(uid)
+        .once('value')
+        .then(function (data) {
+          const photographerServiceInformationData = data.val();
+          if (photographerServiceInformationData) {
+            db
+              .ref('user_metadata')
+              .child(uid)
+              .once('value')
+              .then(function (userMetadataData) {
+                const userMetadataDataVal = userMetadataData.val();
+                const userMetadataDataItem = [userMetadataDataVal];
+                const packagesPriceModified = convertPriceCurrency(
+                  photographerServiceInformationData.packagesPrice,
+                  'price',
+                  currencies,
+                  userMetadataDataVal.currency
+                );
 
-      } else {
-        response.json({ data: {} });
-      }
+                photographerServiceInformationData.packagesPrice = packagesPriceModified;
+                photographerServiceInformationData.userMetadata = convertPriceCurrency(userMetadataDataItem, 'priceStartFrom', currencies)[0];
+                response.json({ data: photographerServiceInformationData });
+              });
+
+          } else {
+            response.json({ data: {} });
+          }
+        });
+    })
+    .catch(function (error) {
+      console.error(error);
+      response.json({ data: {} });
     });
 });
 
