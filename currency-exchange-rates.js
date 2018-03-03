@@ -4,19 +4,28 @@ const firebaseAdmin = require('./commons/firebaseAdmin');
 
 dotenv.load();
 
-axios.get('http://apilayer.net/api/live?access_key=1aa6b5189fe7e7dc51f1189fe02008b4&source=USD&format=1')
-  .then(function (result) {
+// Fetch rates with source: USD
+axios
+  .get('https://apilayer.net/api/live?access_key=' + process.env.CURRENCY_LAYER_API_KEY + '&source=USD&format=1')
+  .then(function (resultUSD) {
     const db = firebaseAdmin.database();
-    const ref = db.ref('currency_exchange_rates');
-    ref
-      .set(result.data.quotes)
+
+    db
+      .ref('currency_exchange_rates')
+      .set(resultUSD.data.quotes)
       .then(function () {
-        console.log('OK!');
-      })
-      .catch(function (error) {
-        console.log(error);
+        console.log('Fetching USD complete');
+
+        // Fetch rates with source: IDR
+        axios
+          .get('https://apilayer.net/api/live?access_key=' + process.env.CURRENCY_LAYER_API_KEY + '&source=IDR&format=1')
+          .then(function (resultIDR) {
+            db
+              .ref('currency_exchange_rates')
+              .update(resultIDR.data.quotes)
+              .then(function () {
+                console.log('Fetching IDR complete');
+              });
+          });
       });
-  })
-  .catch(function (error) {
-    console.log(error);
   });
