@@ -19,8 +19,56 @@ html(
     meta(http-equiv="x-ua-compatible" content="IE=edge")
     meta(name="viewport" content="width=device-width, initial-scale=1")
     title #{EMAIL_TITLE}
-    style
+    style(type="text/css")
       include email-style.css
   body
     .container
       block content
+      br
+      br
+      br
+      br
+      br
+      br
+      br
+      br
+      br
+      br
+      table(border="0" cellpadding="0" cellspacing="0" width="500")
+        tbody
+          tr
+            td(border="0" cellpadding="0" cellspacing="0" height="38" width="222")
+              img(src="https://res.cloudinary.com/debraf3cg/image/upload/c_scale,w_125/v1515688718/assets/CL_h_small.png" alt="Takapic")
+          tr
+            td(height="64" style="height: 25px; font-family: Helvetica, Arial, sans-serif; font-size:18px; font-style:bold;")
+              | Takapic Team
+          tr
+            td(height="58" style="font-family:Helvetica, Arial, sans-serif; font-size:16px; color:#4d4d4e;")
+              | Our Takapic's office address where it is located | Somewhere, Lowest Fl 1234
+              br
+              | Office 111.222.3334
+          tr
+            td(class="hover" height="60" style="font-family:Helvetica, Arial, sans-serif; font-size:16px; color:#d0292d;")
+              a(href="mailto:support@takapic.com" onMouseOver="this.style.color='#71080a'" onMouseOut="this.style.color='#d0292d'" style="color:#d0292d;")
+                | support@takapic.com
+                br
+              a(href="https://takapic.com/" onMouseOver="this.style.color='#71080a'" onMouseOut="this.style.color='#d0292d'" target="_blank" style="color:#d0292d;")
+                | takapic.com
+          tr
+            td(height="55")
+              a(href="https://www.facebook.com/takapic" target="_blank")
+                img(src="https://www.solodev.com/assets/email-signature/facebook-email-icon.jpg" alt="Facebook Icon")
+              a(href="https://www.linkedin.com/company/takapic" target="_blank")
+                img(src="https://www.solodev.com/assets/email-signature/linkedin-email-icon.jpg" alt="LinkedIn Icon")
+              a(href="https://twitter.com/takapic" target="_blank")
+                img(src="https://www.solodev.com/assets/email-signature/twitter-email-icon.jpg" alt="Twitter Icon")
+          tr
+           td(height="70")
+             small(style="font-family:Helvetica, Arial, sans-serif; font-size:10px; color:#4d4d4e;")
+               | Confidentiality Notice: This e-mail message, including any attachments, is for the sole use of
+               | the intended recipient(s) and may contain confidential and privileged information.
+               | Any unauthorized review, use, disclosure or distribution of this information is prohibited,
+               | and may be punishable by law. If this was sent to you in error, please notify the sender by reply e-mail
+               | and destroy all copies of the original message. Please consider the environment before printing this e-mail.
+
+

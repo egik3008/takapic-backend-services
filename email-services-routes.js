@@ -107,4 +107,30 @@ router.post('/cashout-request', function (request, response) {
     });
 });
 
+router.post('/email-notifications', function (req, resp) {
+  const ctpl = pug.compileFile('email-templates/notifications.pug');
+  const message = {
+    to: {
+      name: req.body.receiverName,
+      email: req.body.receiverEmail
+    },
+    from: {
+      name: 'Takapic Support',
+      email: 'support@takapic.com'
+    },
+    subject: req.body.emailSubject,
+    html: ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: req.body.receiverName, EMAIL_CONTENT: req.body.emailContent })
+  };
+
+  // console.log(ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: 'Oka' }));
+  // console.log(req.body.emailContent);
+  // resp.status(204).send();
+
+  sgMail
+    .send(message)
+    .then(function () {
+      resp.status(204).send();
+    });
+});
+
 module.exports = router;

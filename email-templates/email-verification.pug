@@ -1,7 +1,7 @@
 extends layout
 
 block content
-  p(class='customer-hello') Hello, #{CUSTOMER_NAME}
+  p.customer-hello Hello, #{CUSTOMER_NAME}
   p Follow this link to verify your email address.
   a(href=BASE_HOSTNAME + '/web-provider/email-action-handler/verify-email?uid=' + UID) #{BASE_HOSTNAME}/web-provider/email-action-handler/verify-email?uid=#{UID}
   p If you didn't ask to verify this email address, you can ignore this email.

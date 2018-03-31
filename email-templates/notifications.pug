@@ -1,0 +1,6 @@
+extends layout
+
+block content
+  div#notifications
+    p.customer-name(style="color: #222222; font-weight: bold;") Hello, #{CUSTOMER_NAME}
+    p.notification-content(style="color: #222222;") !{EMAIL_CONTENT}
