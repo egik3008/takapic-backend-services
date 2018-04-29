@@ -90,6 +90,52 @@ router.get('/photographers', function (request, response) {
     });
 });
 
+router.get('/admin/users', function (request, response) {
+  var filterQueryObject = request.query['filter'];
+
+  if (typeof filterQueryObject !== 'undefined') {
+    var filters = '';
+    Object.keys(filterQueryObject).forEach(function (item) {
+      filters = filters + filterQueryObject[item] + ' ';
+    });
+
+    filters = filters.trim();
+  }
+
+  var search = {
+    query: filters,
+    hitsPerPage: 50,
+    page: request.query['page'],
+    attributesToHighlight: ['locationMerge']
+  };
+
+  fetchCurrencies()
+    .then(function (currencies) {
+      indexUserMetadata.search(search, function searchDone(error, content) {
+        if (error) {
+          console.error(error);
+          response.json({ data: [] });
+
+        } else {
+          const convertedData = convertPriceCurrency(content.hits, 'priceStartFrom', currencies);
+          response.json({
+            data: convertedData,
+            metaInfo: {
+              nbHits: content.nbHits,
+              page: content.page,
+              nbPages: content.nbPages,
+              hitsPerPage: content.hitsPerPage
+            }
+          });
+        }
+      });
+    })
+    .catch(function (error) {
+      console.error(error);
+      response.json({ data: [] });
+    });
+});
+
 router.get('/topPhotographers', function (request, response) {
   indexUserMetadata.search({
     attributesToHighlight: ['locationMerge'],
