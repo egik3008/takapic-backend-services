@@ -16,12 +16,18 @@ function initialImport(dataSnapshot) {
 
   dataSnapshot.forEach((function (childSnapshot) {
     const childData = childSnapshot.val();
-    if (
-      childData.userType === 'photographer' &&
-      childData.hasOwnProperty('photoProfilePublicId') &&
-      childData.hasOwnProperty('phoneNumber') &&
-      childData.hasOwnProperty('defaultDisplayPicturePublicId')
-    ) {
+    var isAddToIndex = false;
+
+    if (childData.userType === 'photographer') {
+      isAddToIndex = childData.hasOwnProperty('photoProfilePublicId') &&
+        childData.hasOwnProperty('phoneNumber') &&
+        childData.hasOwnProperty('defaultDisplayPicturePublicId');
+
+    } else if (childData.userType === 'traveller') {
+      isAddToIndex = true;
+    }
+
+    if (isAddToIndex) {
       childData.objectID = childSnapshot.key;
       objectsToIndex.push(childData);
     }

@@ -16,12 +16,18 @@ userMetadataRef.on('child_removed', deleteIndex);
 
 function addOrUpdateIndex(data) {
   const firebaseObject = data.val();
-  if (
-    firebaseObject.userType === 'photographer' &&
-    firebaseObject.hasOwnProperty('photoProfilePublicId') &&
-    firebaseObject.hasOwnProperty('phoneNumber') &&
-    firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId')
-  ) {
+  var isAddToIndex = false;
+
+  if (firebaseObject.userType === 'photographer') {
+    isAddToIndex = firebaseObject.hasOwnProperty('photoProfilePublicId') &&
+      firebaseObject.hasOwnProperty('phoneNumber') &&
+      firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId');
+
+  } else if (firebaseObject.userType === 'traveller') {
+    isAddToIndex = true;
+  }
+
+  if (isAddToIndex) {
     firebaseObject.objectID = data.key;
     indexUserMetadata.saveObject(firebaseObject, function (error, content) {
       if (error) {
