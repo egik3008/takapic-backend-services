@@ -16,21 +16,19 @@ function initialImport(dataSnapshot) {
 
   dataSnapshot.forEach((function (childSnapshot) {
     const childData = childSnapshot.val();
-    var isAddToIndex = false;
 
     if (childData.userType === 'photographer') {
-      isAddToIndex = childData.hasOwnProperty('photoProfilePublicId') &&
-        childData.hasOwnProperty('phoneNumber') &&
-        childData.hasOwnProperty('defaultDisplayPicturePublicId');
-
-    } else if (childData.userType === 'traveller') {
-      isAddToIndex = true;
+      if (
+        !childData.hasOwnProperty('photoProfilePublicId') &&
+        !childData.hasOwnProperty('phoneNumber') &&
+        !childData.hasOwnProperty('defaultDisplayPicturePublicId')
+      ) {
+        childData.enable = 0;
+      }
     }
 
-    if (isAddToIndex) {
-      childData.objectID = childSnapshot.key;
-      objectsToIndex.push(childData);
-    }
+    childData.objectID = childSnapshot.key;
+    objectsToIndex.push(childData);
   }));
 
   if (objectsToIndex.length > 0) {
