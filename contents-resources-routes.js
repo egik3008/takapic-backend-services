@@ -50,17 +50,19 @@ function convertPriceCurrency(rows, priceKey, allLocalRates, currency) {
 router.get('/photographers', function (request, response) {
   var destination = request.query['filter']['destination'];
   var date = request.query['filter']['date'];
+  var filters = 'enable = 1 AND NOT defaultDisplayPicturePublicId:"-" AND NOT phoneNumber:"-" AND NOT photoProfilePublicId:"-"';
   var search = {
     query: destination,
     hitsPerPage: process.env.ALGOLIA_HITS_PER_PAGE,
     page: request.query['filter']['page'],
     attributesToHighlight: ['locationMerge'],
     facets: ['userType'],
-    facetFilters: [['userType:photographer']]
+    facetFilters: [['userType:photographer']],
+    filters: filters
   };
 
   if (date !== '') {
-    search.filters = 'NOT notAvailableDates:' + date;
+    search.filters = search.filters + ' AND NOT notAvailableDates:' + date;
   }
 
   fetchCurrencies()

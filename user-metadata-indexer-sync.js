@@ -16,17 +16,6 @@ userMetadataRef.on('child_removed', deleteIndex);
 
 function addOrUpdateIndex(data) {
   const firebaseObject = data.val();
-
-  if (firebaseObject.userType === 'photographer') {
-    if (
-      !firebaseObject.hasOwnProperty('photoProfilePublicId') &&
-      !firebaseObject.hasOwnProperty('phoneNumber') &&
-      !firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId')
-    ) {
-      firebaseObject.enable = 0;
-    }
-  }
-
   firebaseObject.objectID = data.key;
   indexUserMetadata.saveObject(firebaseObject, function (error, content) {
     if (error) {

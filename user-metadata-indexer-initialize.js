@@ -16,17 +16,6 @@ function initialImport(dataSnapshot) {
 
   dataSnapshot.forEach((function (childSnapshot) {
     const childData = childSnapshot.val();
-
-    if (childData.userType === 'photographer') {
-      if (
-        !childData.hasOwnProperty('photoProfilePublicId') &&
-        !childData.hasOwnProperty('phoneNumber') &&
-        !childData.hasOwnProperty('defaultDisplayPicturePublicId')
-      ) {
-        childData.enable = 0;
-      }
-    }
-
     childData.objectID = childSnapshot.key;
     objectsToIndex.push(childData);
   }));
