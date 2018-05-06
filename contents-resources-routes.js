@@ -60,7 +60,7 @@ router.get('/photographers', function (request, response) {
   };
 
   if (date !== '') {
-    search.filters = search.filters + ' AND NOT notAvailableDates:' + date;
+    search.filters = 'NOT notAvailableDates:' + date;
   }
 
   fetchCurrencies()
