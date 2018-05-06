@@ -1,9 +1,10 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const pug = require('pug');
 const sgMail = require('@sendgrid/mail');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const router = express.Router();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);

@@ -1,8 +1,9 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const axios = require('axios');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 // Fetch rates with source: USD
 axios

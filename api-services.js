@@ -1,3 +1,4 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -9,7 +10,7 @@ const slackIntegration = require('./slack-integration-routes');
 const cloudinary = require('./cloudinary-routes');
 const googleSignIn = require('./google-sign-in-routes');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const app = express();
 const router = express.Router();

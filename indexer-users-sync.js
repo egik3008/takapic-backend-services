@@ -1,9 +1,10 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 const algoliasearch = require('algoliasearch');
 const logger = require('./commons/logger');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const database = firebaseAdmin.database();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);

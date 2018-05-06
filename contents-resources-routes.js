@@ -1,10 +1,11 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 const algoliasearch = require('algoliasearch');
 const Geode = require('geode');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const router = express.Router();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);

@@ -1,3 +1,4 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const bodyparser = require('body-parser');
@@ -5,7 +6,7 @@ const stylus = require('stylus');
 const nib = require('nib');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 function compileCSS(str, path) {
   return stylus(str).set('filename', path).use(nib());

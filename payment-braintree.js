@@ -1,8 +1,9 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
 const braintree = require('braintree');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const router = express.Router();
 const gateway = braintree.connect({

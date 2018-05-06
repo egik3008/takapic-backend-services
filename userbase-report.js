@@ -1,8 +1,9 @@
+const path = require('path');
 const dotenv = require('dotenv');
 const firebaseAdmin = require('./commons/firebaseAdmin');
 const axios = require('axios');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 var stringInformation = "";
 const db = firebaseAdmin.database();
