@@ -8,7 +8,8 @@ dotenv.load();
 
 const router = express.Router();
 const algolia = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_API_KEY);
-const indexUserMetadata = algolia.initIndex(process.env.ALGOLIA_INDEX_USERMETADATA);
+const indexPhotographers = algolia.initIndex(process.env.ALGOLIA_INDEX_PHOTOGRAPHERS);
+const indexUsers = algolia.initIndex(process.env.ALGOLIA_INDEX_USERS);
 
 function fetchCurrencies() {
   return new Promise(function (resolve, reject) {
@@ -50,15 +51,11 @@ function convertPriceCurrency(rows, priceKey, allLocalRates, currency) {
 router.get('/photographers', function (request, response) {
   var destination = request.query['filter']['destination'];
   var date = request.query['filter']['date'];
-  var filters = 'enable = 1 AND NOT defaultDisplayPicturePublicId:"-" AND NOT phoneNumber:"-" AND NOT photoProfilePublicId:"-"';
   var search = {
     query: destination,
     hitsPerPage: process.env.ALGOLIA_HITS_PER_PAGE,
     page: request.query['filter']['page'],
-    attributesToHighlight: ['locationMerge'],
-    facets: ['userType'],
-    facetFilters: [['userType:photographer']],
-    filters: filters
+    attributesToHighlight: ['locationMerge']
   };
 
   if (date !== '') {
@@ -67,7 +64,7 @@ router.get('/photographers', function (request, response) {
 
   fetchCurrencies()
     .then(function (currencies) {
-      indexUserMetadata.search(search, function searchDone(error, content) {
+      indexPhotographers.search(search, function searchDone(error, content) {
         if (error) {
           console.error(error);
           response.json({ data: [] });
@@ -94,9 +91,9 @@ router.get('/photographers', function (request, response) {
 
 router.get('/admin/users', function (request, response) {
   var filterQueryObject = request.query['filter'];
+  var filters = '';
 
   if (typeof filterQueryObject !== 'undefined') {
-    var filters = '';
     Object.keys(filterQueryObject).forEach(function (item) {
       filters = filters + filterQueryObject[item] + ' ';
     });
@@ -113,7 +110,7 @@ router.get('/admin/users', function (request, response) {
 
   fetchCurrencies()
     .then(function (currencies) {
-      indexUserMetadata.search(search, function searchDone(error, content) {
+      indexUsers.search(search, function searchDone(error, content) {
         if (error) {
           console.error(error);
           response.json({ data: [] });
@@ -139,13 +136,13 @@ router.get('/admin/users', function (request, response) {
 });
 
 router.get('/topPhotographers', function (request, response) {
-  indexUserMetadata.search({
+  indexPhotographers.search({
     attributesToHighlight: ['locationMerge'],
     facets: ['topPhotographer', 'userType'],
     facetFilters: [['topPhotographer:true']]
   }, function searchDone(error, content) {
     if (error) {
-      console.log(error);
+      console.error(error);
       response.json({ data: [] });
     } else {
       response.json({ data: content.hits });
@@ -222,12 +219,10 @@ router.get('/cities', function (request, response) {
 });
 
 router.get('/locations', function (request, response) {
-  indexUserMetadata.search({
+  indexPhotographers.search({
     query: request.query.keyword,
     distinct: true,
     attributesToHighlight: ['countryName'],
-    facets: ['userType'],
-    facetFilters: [['userType:photographer']],
     attributesToRetrieve: ['countryName', 'locationAdmLevel1', 'locationAdmLevel2']
   }, function searchDone(error, content) {
     if (error) {
