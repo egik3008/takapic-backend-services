@@ -6,7 +6,7 @@ const logger = new winston.Logger({
   level: 'debug',
   transports: [
     new (winston.transports.File)({
-      filename: path.resolve('./logs/api-services.log'),
+      filename: path.dirname(require.main.filename) + '/logs/api-services.log',
       json: false,
       timestamp: function () {
         return moment().format('dddd, MMMM Do YYYY, HH:mm:ss')
