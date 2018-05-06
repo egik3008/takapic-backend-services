@@ -1,8 +1,8 @@
-const dotenv = require('dotenv');
 const path = require('path');
+const dotenv = require('dotenv');
 const firebaseAdmin = require('firebase-admin');
 
-dotenv.load();
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
 const serviceAccount = require(path.resolve(__dirname) + '/../' + process.env.SERVICE_ACCOUNT_PRIVATE_KEY);
 const app = firebaseAdmin.initializeApp({
