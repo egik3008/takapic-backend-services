@@ -4,7 +4,8 @@ const express = require('express');
 const pug = require('pug');
 const sgMail = require('@sendgrid/mail');
 
-dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
+const rootPath = path.dirname(require.main.filename);
+dotenv.config({ path: rootPath + '/.env' });
 
 const router = express.Router();
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
@@ -13,7 +14,7 @@ router.post('/email-verification', function (request, response) {
   const receiverEmail = request.body.receiverEmail;
   const receiverName = request.body.receiverName;
   const uid = request.body.uid;
-  const compiledFunction = pug.compileFile('email-templates/email-verification.pug');
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/email-verification.pug');
 
   const msg = {
     to: {
