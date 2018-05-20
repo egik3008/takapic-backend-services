@@ -28,25 +28,29 @@ function fetchCurrencies() {
 }
 
 function convertPriceCurrency(rows, priceKey, allLocalRates, currency) {
-  return rows.map(function (item) {
-    const useCurrency = !currency ? item.currency : currency;
-    const IDR_USD_Rates = allLocalRates['IDRUSD'];
-    const IDRRates = allLocalRates['IDR' + useCurrency];
-    const USDRates = allLocalRates['USD' + useCurrency];
+  if (typeof rows !== 'undefined' && rows && rows.length > 0) {
+    return rows.map(function (item) {
+      const useCurrency = !currency ? item.currency : currency;
+      const IDR_USD_Rates = allLocalRates['IDRUSD'];
+      const IDRRates = allLocalRates['IDR' + useCurrency];
+      const USDRates = allLocalRates['USD' + useCurrency];
 
-    // Get IDR rates of current local rates first.
-    const inIDR = Math.round(item[priceKey] / IDRRates);
-    item[priceKey + 'IDR'] = inIDR;
+      // Get IDR rates of current local rates first.
+      const inIDR = Math.round(item[priceKey] / IDRRates);
+      item[priceKey + 'IDR'] = inIDR;
 
-    // Use IDR rates as a base value to convert to USD
-    item[priceKey + 'USD'] = Math.round(IDR_USD_Rates * inIDR);
+      // Use IDR rates as a base value to convert to USD
+      item[priceKey + 'USD'] = Math.round(IDR_USD_Rates * inIDR);
 
-    // Use original price (not converted to IDR before) to convert to USD.
-    // This is just an additional optional information.
-    item[priceKey + 'USD2'] = Math.round(item[priceKey] / USDRates);
+      // Use original price (not converted to IDR before) to convert to USD.
+      // This is just an additional optional information.
+      item[priceKey + 'USD2'] = Math.round(item[priceKey] / USDRates);
 
-    return item;
-  });
+      return item;
+    });
+  }
+
+  return [];
 }
 
 router.get('/photographers', function (request, response) {
