@@ -96,6 +96,8 @@ router.get('/photographers', function (request, response) {
 
 router.get('/admin/users', function (request, response) {
   var filterQueryObject = request.query['filter'];
+  var userTypeGet = request.query['userType'];
+  var userType = userTypeGet === 'p' ? 'photographer' : 'traveller';
   var filters = '';
 
   if (typeof filterQueryObject !== 'undefined') {
@@ -108,6 +110,7 @@ router.get('/admin/users', function (request, response) {
 
   var search = {
     query: filters,
+    filters: 'userType:' + userType,
     hitsPerPage: 50,
     page: request.query['page'],
     attributesToHighlight: ['locationMerge']
