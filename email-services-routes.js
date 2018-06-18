@@ -50,7 +50,7 @@ router.post('/contact-takapic', function (request, response) {
   const consumerName = request.body.consumerName;
   const topic = request.body.topic;
   const description = request.body.description;
-  const compiledFunction = pug.compileFile('email-templates/contact-takapic.pug');
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/contact-takapic.pug');
 
   const msg = {
     to: {
@@ -83,7 +83,7 @@ router.post('/contact-takapic', function (request, response) {
 });
 
 router.post('/cashout-request', function (request, response) {
-  const compiledFunction = pug.compileFile('email-templates/cashout.pug');
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/cashout.pug');
 
   const msg = {
     to: {
@@ -110,7 +110,7 @@ router.post('/cashout-request', function (request, response) {
 });
 
 router.post('/email-notifications', function (req, resp) {
-  const ctpl = pug.compileFile('email-templates/notifications.pug');
+  const ctpl = pug.compileFile(rootPath + '/email-templates/notifications.pug');
   const message = {
     to: {
       name: req.body.receiverName,
@@ -123,10 +123,6 @@ router.post('/email-notifications', function (req, resp) {
     subject: req.body.emailSubject,
     html: ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: req.body.receiverName, EMAIL_CONTENT: req.body.emailContent })
   };
-
-  // console.log(ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: 'Oka' }));
-  // console.log(req.body.emailContent);
-  // resp.status(204).send();
 
   sgMail
     .send(message)
