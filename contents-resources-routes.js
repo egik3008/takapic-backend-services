@@ -246,4 +246,24 @@ router.get('/locations', function (request, response) {
   });
 });
 
+router.get('/users/:uid', function (request, response) {
+  fetchCurrencies()
+    .then(function (currencies) {
+      const uid = request.params.uid
+      const db = firebaseAdmin.database()
+
+      db
+        .ref('user_metadata')
+        .child(uid)
+        .once('value')
+        .then(function (data) {
+          response.json({ data: data.val() })
+        })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.json({ data: {} })
+    })
+})
+
 module.exports = router;
