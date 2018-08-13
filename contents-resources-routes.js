@@ -95,27 +95,28 @@ router.get('/photographers', function (request, response) {
 });
 
 router.get('/admin/users', function (request, response) {
-  var filterQueryObject = request.query['filter'];
-  var userTypeGet = request.query['userType'];
-  var limit = request.query['limit'];
-  var userType = userTypeGet === 'p' ? 'photographer' : 'traveller';
-  var filters = '';
+  const filterQueryObject = request.query['filter']
+  const userType = request.query['userType'] === 'p' ? 'photographer' : 'traveller'
+  let filters = query = ''
 
   if (typeof filterQueryObject !== 'undefined') {
-    Object.keys(filterQueryObject).forEach(function (item) {
-      filters = filters + filterQueryObject[item] + ' ';
-    });
-
-    filters = filters.trim();
+    Object.keys(filterQueryObject).forEach(function (key) {
+      if (key === 'enable') {
+        filters = filters + ' AND ' + key + '=' + filterQueryObject[key]
+        filters = filters.trim()
+      } else {
+        query = filterQueryObject[key]
+      }
+    })
   }
 
   var search = {
-    query: filters,
-    filters: 'userType:' + userType,
-    hitsPerPage: limit,
-    page: request.query['page'],
+    query: query,
+    filters: 'userType:' + userType + ' ' + filters,
+    hitsPerPage: request.query['limit'] ? request.query['limit'] : 50,
+    page: request.query['page'] ? request.query['page'] : 0,
     attributesToHighlight: ['locationMerge']
-  };
+  }
 
   fetchCurrencies()
     .then(function (currencies) {
