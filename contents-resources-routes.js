@@ -268,7 +268,7 @@ router.get('/users/:uid', function (request, response) {
             .equalTo(userDetail.uid)
             .once('value', history => {
               if (history.exists()) {
-                userDetail['reservationHistory'] = Object.entries(history.val()).map(([id, data]) => ({id, data}))
+                userDetail['reservationHistory'] = Object.values(history.val())
               } else {
                 userDetail['reservationHistory'] = []
               }
