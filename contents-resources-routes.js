@@ -267,7 +267,11 @@ router.get('/users/:uid', function (request, response) {
             .orderByChild('travellerId')
             .equalTo(userDetail.uid)
             .once('value', history => {
-              if (history.exists()) { userDetail['reservationHistory'] = history.val() }
+              if (history.exists()) {
+                userDetail['reservationHistory'] = Object.entries(history.val()).map(([id, data]) => ({id, data}))
+              } else {
+                userDetail['reservationHistory'] = []
+              }
 
               response.json({ data: userDetail })
             })
