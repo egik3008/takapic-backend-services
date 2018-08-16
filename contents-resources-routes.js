@@ -261,25 +261,33 @@ router.get('/users/:uid', function (request, response) {
         .child(uid)
         .once('value')
         .then(function (data) {
-          let userDetail = data.val()
+          if (data.exists()) {
+            let userDetail = data.val()
 
-          db.ref('reservations')
-            .orderByChild('travellerId')
-            .equalTo(userDetail.uid)
-            .once('value', history => {
-              if (history.exists()) {
-                userDetail['reservationHistory'] = Object.values(history.val())
-              } else {
-                userDetail['reservationHistory'] = []
-              }
+            db.ref('reservations')
+              .orderByChild('travellerId')
+              .equalTo(uid)
+              .once('value', history => {
+                if (history.exists()) {
+                  userDetail['reservationHistory'] = Object.values(history.val())
+                } else {
+                  userDetail['reservationHistory'] = []
+                }
 
-              response.json({ data: userDetail })
-            })
+                response.json({ data: userDetail })
+              })
+          } else {
+            throw new Error('User not found!')
+          }
+        })
+        .catch(function (error) {
+          console.error(error)
+          response.status(500).json({ error: error.message })
         })
     })
     .catch(function (error) {
       console.error(error)
-      response.json({ data: {} })
+      response.status(500).json({ error: error })
     })
 })
 
