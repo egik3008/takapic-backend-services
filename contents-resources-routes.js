@@ -328,7 +328,7 @@ router.put('/users/:uid', function (request, response) {
     })
 })
 
-router.put('/photographer/:uid', function (request, response) {
+router.put('/photographers/:uid', function (request, response) {
   const uid = request.params.uid
   const body = request.body
   const db = firebaseAdmin.database()
