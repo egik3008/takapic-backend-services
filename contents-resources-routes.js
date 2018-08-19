@@ -95,6 +95,7 @@ router.get('/photographers', function (request, response) {
 
 router.get('/admin/users', function (request, response) {
   const filterQueryObject = request.query['filter']
+  const sortQueryObject = request.query['sort']
   const userType = request.query['userType'] === 'p' ? 'photographer' : 'traveller'
   let query = ''
   let filters = ''
@@ -107,6 +108,12 @@ router.get('/admin/users', function (request, response) {
       } else {
         query = filterQueryObject[key]
       }
+    })
+  }
+
+  if (typeof sortQueryObject !== 'undefined') {
+    indexUsers.setSettings({
+      'customRanking': [sortQueryObject['method'] + '(' + sortQueryObject['key'] + ')']
     })
   }
 
