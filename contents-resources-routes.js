@@ -172,8 +172,8 @@ router.get('/photographers/:uid', function (request, response) {
         .child(uid)
         .once('value')
         .then(function (data) {
-          const photographerServiceInformationData = data.val()
-          if (photographerServiceInformationData) {
+          let photographerData = data.val()
+          if (photographerData) {
             db.ref('user_metadata')
               .child(uid)
               .once('value')
@@ -181,19 +181,31 @@ router.get('/photographers/:uid', function (request, response) {
                 const userMetadataDataVal = userMetadataData.val()
                 const userMetadataDataItem = [userMetadataDataVal]
                 const packagesPriceModified = convertPriceCurrency(
-                  photographerServiceInformationData.packagesPrice,
+                  photographerData.packagesPrice,
                   'price',
                   currencies,
                   userMetadataDataVal.currency
                 )
 
-                photographerServiceInformationData.packagesPrice = packagesPriceModified
-                photographerServiceInformationData.userMetadata = convertPriceCurrency(
+                photographerData.packagesPrice = packagesPriceModified
+                photographerData.userMetadata = convertPriceCurrency(
                   userMetadataDataItem,
                   'priceStartFrom',
                   currencies
                 )[0]
-                response.json({ data: photographerServiceInformationData })
+
+                db.ref('reservations')
+                  .orderByChild('photographerId')
+                  .equalTo(uid)
+                  .once('value', history => {
+                    if (history.exists()) {
+                      photographerData['reservationHistory'] = Object.values(history.val())
+                    } else {
+                      photographerData['reservationHistory'] = []
+                    }
+
+                    response.json({ data: photographerData })
+                  })
               })
           } else {
             response.json({ data: {} })
