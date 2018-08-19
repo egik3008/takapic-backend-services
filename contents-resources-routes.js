@@ -4,6 +4,7 @@ const express = require('express')
 const firebaseAdmin = require('./commons/firebaseAdmin')
 const algoliasearch = require('algoliasearch')
 const Geode = require('geode')
+const uuid = require('uuid/v4')
 
 dotenv.config({ path: path.dirname(require.main.filename) + '/.env' })
 
@@ -337,8 +338,40 @@ router.put('/photographers/:uid', function (request, response) {
   db.ref('photographer_service_information')
     .child(uid)
     .set(body)
-    .then(function (data) {
+    .then(() => {
       response.json({ message: 'Success update photographer!' })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
+    })
+})
+
+router.post('/photographers', function (request, response) {
+  const body = request.body
+  const db = firebaseAdmin.database()
+  const uid = uuid()
+  let userMetadata = {}
+  let photographer = {}
+  body['created'] = Math.round((new Date()).getTime() / 1000)
+  body.userMetadata['created'] = Math.round((new Date()).getTime() / 1000)
+  body.userMetadata['userType'] = 'photographer'
+  userMetadata[uid] = body.userMetadata
+  delete body['userMetadata']
+  photographer[uid] = body
+
+  db.ref('user_metadata')
+    .update(userMetadata)
+    .then(() => {
+      db.ref('photographer_service_information')
+        .update(photographer)
+        .then(() => {
+          response.json({ message: 'Success add photographer!' })
+        })
+        .catch(function (error) {
+          console.error(error)
+          response.status(500).json({ error: error.message })
+        })
     })
     .catch(function (error) {
       console.error(error)
