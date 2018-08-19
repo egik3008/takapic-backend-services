@@ -1,62 +1,62 @@
-const dotenv = require('dotenv');
-const express = require('express');
-const json2csv = require('json2csv');
-const basicAuth = require('basic-auth');
-const firebaseAdmin = require('./commons/firebaseAdmin');
+const dotenv = require('dotenv')
+const express = require('express')
+const json2csv = require('json2csv')
+const basicAuth = require('basic-auth')
+const firebaseAdmin = require('./commons/firebaseAdmin')
 
-dotenv.load();
+dotenv.load()
 
 const auth = function (req, resp, next) {
-  function unauthorized(resp) {
-    resp.set('WWW-Authenticate', 'Basic realm=Authorization Required');
-    return resp.send(401);
+  function unauthorized (resp) {
+    resp.set('WWW-Authenticate', 'Basic realm=Authorization Required')
+    return resp.send(401)
   }
 
-  const user = basicAuth(req);
+  const user = basicAuth(req)
   if (!user || !user.name || !user.pass) {
-    return unauthorized(resp);
+    return unauthorized(resp)
   }
 
   if (user.name === process.env.BASIC_AUTH_USERNAME && user.pass === process.env.BASIC_AUTH_PASSWORD) {
-    return next();
+    return next()
   } else {
-    return unauthorized(resp);
+    return unauthorized(resp)
   }
-};
+}
 
 const constructCsv = function (data) {
-  var result = [];
+  var result = []
   Object.keys(data).forEach(function (key) {
-    result.push(data[key]);
-  });
-  return result;
-};
+    result.push(data[key])
+  })
+  return result
+}
 
-const app = express();
-const router = express.Router();
+const app = express()
+const router = express.Router()
 
 router.get('/', function (req, resp) {
-  const db = firebaseAdmin.database();
-  const ref = db.ref('promo');
+  const db = firebaseAdmin.database()
+  const ref = db.ref('promo')
 
   ref.once('value', function (snapshot) {
-    const fields = ['city', 'destination', 'email', 'visitor_type'];
-    const dataList = constructCsv(snapshot.val());
+    const fields = ['city', 'destination', 'email', 'visitor_type']
+    const dataList = constructCsv(snapshot.val())
 
-    const date = new Date();
-    const month = date.getMonth() + 1;
+    const date = new Date()
+    const month = date.getMonth() + 1
 
-    const filename = 'report_' + date.getFullYear() + '-' + month + '-' + date.getDate();
-    const csv = json2csv({ data: dataList, fields: fields });
+    const filename = 'report_' + date.getFullYear() + '-' + month + '-' + date.getDate()
+    const csv = json2csv({ data: dataList, fields: fields })
 
-    resp.set('text/csv');
-    resp.attachment(filename + '.csv');
-    resp.send(csv);
-  });
-});
+    resp.set('text/csv')
+    resp.attachment(filename + '.csv')
+    resp.send(csv)
+  })
+})
 
-app.use('/report', auth, router);
+app.use('/report', auth, router)
 
-const port = 8484;
-app.listen(port);
-console.log('Listen on port', port);
+const port = 8484
+app.listen(port)
+console.log('Listen on port', port)

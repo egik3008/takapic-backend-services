@@ -1,20 +1,20 @@
-const path = require('path');
-const dotenv = require('dotenv');
-const express = require('express');
-const pug = require('pug');
-const sgMail = require('@sendgrid/mail');
+const path = require('path')
+const dotenv = require('dotenv')
+const express = require('express')
+const pug = require('pug')
+const sgMail = require('@sendgrid/mail')
 
-const rootPath = path.dirname(require.main.filename);
-dotenv.config({ path: rootPath + '/.env' });
+const rootPath = path.dirname(require.main.filename)
+dotenv.config({ path: rootPath + '/.env' })
 
-const router = express.Router();
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+const router = express.Router()
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 router.post('/email-verification', function (request, response) {
-  const receiverEmail = request.body.receiverEmail;
-  const receiverName = request.body.receiverName;
-  const uid = request.body.uid;
-  const compiledFunction = pug.compileFile(rootPath + '/email-templates/email-verification.pug');
+  const receiverEmail = request.body.receiverEmail
+  const receiverName = request.body.receiverName
+  const uid = request.body.uid
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/email-verification.pug')
 
   const msg = {
     to: {
@@ -32,25 +32,25 @@ router.post('/email-verification', function (request, response) {
       UID: uid,
       CUSTOMER_NAME: receiverName
     })
-  };
+  }
 
   sgMail
     .send(msg)
     .then(function () {
-      response.send({ status: 'OK' });
+      response.send({ status: 'OK' })
     })
     .catch(function (error) {
-      console.log(error);
-      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
-    });
-});
+      console.log(error)
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message })
+    })
+})
 
 router.post('/contact-takapic', function (request, response) {
-  const consumerEmail = request.body.consumerEmail;
-  const consumerName = request.body.consumerName;
-  const topic = request.body.topic;
-  const description = request.body.description;
-  const compiledFunction = pug.compileFile(rootPath + '/email-templates/contact-takapic.pug');
+  const consumerEmail = request.body.consumerEmail
+  const consumerName = request.body.consumerName
+  const topic = request.body.topic
+  const description = request.body.description
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/contact-takapic.pug')
 
   const msg = {
     to: {
@@ -69,21 +69,21 @@ router.post('/contact-takapic', function (request, response) {
       TOPIC: topic,
       DESCRIPTION: description
     })
-  };
+  }
 
   sgMail
     .send(msg)
     .then(function () {
-      response.send({ status: 'OK' });
+      response.send({ status: 'OK' })
     })
     .catch(function (error) {
-      console.log(error);
-      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
-    });
-});
+      console.log(error)
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message })
+    })
+})
 
 router.post('/cashout-request', function (request, response) {
-  const compiledFunction = pug.compileFile(rootPath + '/email-templates/cashout.pug');
+  const compiledFunction = pug.compileFile(rootPath + '/email-templates/cashout.pug')
 
   const msg = {
     to: {
@@ -96,21 +96,21 @@ router.post('/cashout-request', function (request, response) {
     },
     subject: 'Cash out Request - ' + request.body.REQUESTER,
     html: compiledFunction(request.body)
-  };
+  }
 
   sgMail
     .send(msg)
     .then(function () {
-      response.send({ status: 'OK' });
+      response.send({ status: 'OK' })
     })
     .catch(function (error) {
-      console.log(error);
-      response.status(500).send({ status: 'FAILED', errorMessage: error.message });
-    });
-});
+      console.log(error)
+      response.status(500).send({ status: 'FAILED', errorMessage: error.message })
+    })
+})
 
 router.post('/email-notifications', function (req, resp) {
-  const ctpl = pug.compileFile(rootPath + '/email-templates/notifications.pug');
+  const ctpl = pug.compileFile(rootPath + '/email-templates/notifications.pug')
   const message = {
     to: {
       name: req.body.receiverName,
@@ -122,13 +122,13 @@ router.post('/email-notifications', function (req, resp) {
     },
     subject: req.body.emailSubject,
     html: ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: req.body.receiverName, EMAIL_CONTENT: req.body.emailContent })
-  };
+  }
 
   sgMail
     .send(message)
     .then(function () {
-      resp.status(204).send();
-    });
-});
+      resp.status(204).send()
+    })
+})
 
-module.exports = router;
+module.exports = router

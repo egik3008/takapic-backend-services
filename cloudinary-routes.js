@@ -1,15 +1,15 @@
-const path = require('path');
-const dotenv = require('dotenv');
-const express = require('express');
-const axios = require('axios');
+const path = require('path')
+const dotenv = require('dotenv')
+const express = require('express')
+const axios = require('axios')
 
-dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
+dotenv.config({ path: path.dirname(require.main.filename) + '/.env' })
 
-const router = express.Router();
+const router = express.Router()
 
 router.delete('/cloudinary-images/delete', function (request, response) {
-  var urlRequest = process.env.CLOUDINARY_API_BASE_URL;
-  urlRequest += '/resources/image/upload';
+  var urlRequest = process.env.CLOUDINARY_API_BASE_URL
+  urlRequest += '/resources/image/upload'
 
   axios({
     method: 'DELETE',
@@ -24,12 +24,12 @@ router.delete('/cloudinary-images/delete', function (request, response) {
     }
   })
     .then(function (result) {
-      response.send(result.data);
+      response.send(result.data)
     })
     .catch(function (error) {
-      console.error(error);
-      response.status(500).send(error);
-    });
-});
+      console.error(error)
+      response.status(500).send(error)
+    })
+})
 
-module.exports = router;
+module.exports = router
