@@ -328,4 +328,22 @@ router.put('/users/:uid', function (request, response) {
     })
 })
 
+router.put('/photographer/:uid', function (request, response) {
+  const uid = request.params.uid
+  const body = request.body
+  const db = firebaseAdmin.database()
+  body['updated'] = Math.round((new Date()).getTime() / 1000)
+
+  db.ref('photographer_service_information')
+    .child(uid)
+    .set(body)
+    .then(function (data) {
+      response.json({ message: 'Success update photographer!' })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
+    })
+})
+
 module.exports = router
