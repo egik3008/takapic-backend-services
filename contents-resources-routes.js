@@ -385,7 +385,18 @@ router.get('/reservations', function (request, response) {
     .once('value', data => {
       const result = Object.keys(data.val()).map((k) => {
         const item = data.val()[k]
+        const userKeys = Object.keys(item.uidMapping)
+        let traveler, photographer
+        for (const key in userKeys) {
+          if (item.uidMapping[userKeys[key]].photoProfileUrl === '-') {
+            traveler = item.uidMapping[userKeys[key]].displayName
+          } else {
+            photographer = item.uidMapping[userKeys[key]].displayName
+          }
+        }
         item['id'] = k
+        item['traveler'] = traveler
+        item['photographer'] = photographer
         return item
       })
       response.json({ data: result })
