@@ -407,4 +407,47 @@ router.get('/reservations', function (request, response) {
     })
 })
 
+router.get('/reservations/:uid', function (request, response) {
+  const uid = request.params.uid
+  const db = firebaseAdmin.database()
+  db.ref('reservations')
+    .child(uid)
+    .once('value', data => {
+      const item = data.val()
+      const userKeys = Object.keys(item.uidMapping)
+      let traveler, photographer
+      for (const key in userKeys) {
+        if (item.uidMapping[userKeys[key]].photoProfileUrl === '-') {
+          traveler = item.uidMapping[userKeys[key]].displayName
+        } else {
+          photographer = item.uidMapping[userKeys[key]].displayName
+        }
+      }
+      item['traveler'] = traveler
+      item['photographer'] = photographer
+
+      db.ref('albums')
+        .child(uid)
+        .once('value', albums => {
+          item['albums'] = albums.val()
+
+          db.ref('photographer_service_information')
+            .child(item.photographerId)
+            .once('value', detail => {
+              let packageDetail
+              for (const p of detail.val().packagesPrice) {
+                if (p.id === item.packageId) { packageDetail = p }
+              }
+
+              item['package'] = packageDetail
+              response.json(item)
+            })
+        })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
+    })
+})
+
 module.exports = router
