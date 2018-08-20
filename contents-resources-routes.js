@@ -55,100 +55,50 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
 }
 
 router.get('/users', function (request, response) {
-  const filterQueryObject = request.query['filter']
-  const sortQueryObject = request.query['sort']
-  const userType = request.query['userType'] === 'p' ? 'photographer' : 'traveller'
-  let query = ''
-  let filters = ''
+  const db = firebaseAdmin.database()
+  const userType = request.query['type'] === 'p' ? 'photographer' : 'traveller'
 
-  if (typeof filterQueryObject !== 'undefined') {
-    Object.keys(filterQueryObject).forEach(function (key) {
-      if (key === 'enable') {
-        filters = filters + ' AND ' + key + '=' + filterQueryObject[key]
-        filters = filters.trim()
-      } else {
-        query = filterQueryObject[key]
-      }
-    })
-  }
-
-  if (typeof sortQueryObject !== 'undefined') {
-    indexUsers.setSettings({
-      'customRanking': [sortQueryObject['method'] + '(' + sortQueryObject['key'] + ')']
-    })
-  }
-
-  const search = {
-    query: query,
-    filters: 'userType:' + userType + ' ' + filters,
-    hitsPerPage: request.query['limit'] ? request.query['limit'] : 50,
-    page: request.query['page'] ? request.query['page'] : 0,
-    attributesToHighlight: ['locationMerge']
-  }
-
-  fetchCurrencies()
-    .then(function (currencies) {
-      indexUsers.search(search, function searchDone (error, content) {
-        if (error) {
-          console.error(error)
-          response.json({ data: [] })
-        } else {
-          const convertedData = convertPriceCurrency(content.hits, 'priceStartFrom', currencies)
-          response.json({
-            data: convertedData,
-            metaInfo: {
-              nbHits: content.nbHits,
-              page: content.page,
-              nbPages: content.nbPages,
-              hitsPerPage: content.hitsPerPage
-            }
-          })
-        }
+  db.ref('user_metadata')
+    .orderByChild('userType').equalTo(userType)
+    .on('value', (data) => {
+      const result = Object.keys(data.val()).map((k) => {
+        const item = data.val()[k]
+        return item
       })
-    })
-    .catch(function (error) {
-      console.error(error)
-      response.json({ data: [] })
+      response.json(result)
     })
 })
 
 router.get('/users/:uid', function (request, response) {
-  fetchCurrencies()
-    .then(function (currencies) {
-      const uid = request.params.uid
-      const db = firebaseAdmin.database()
+  const uid = request.params.uid
+  const db = firebaseAdmin.database()
 
-      db.ref('user_metadata')
-        .child(uid)
-        .once('value')
-        .then(function (data) {
-          if (data.exists()) {
-            let userDetail = data.val()
+  db.ref('user_metadata')
+    .child(uid)
+    .once('value')
+    .then(function (data) {
+      if (data.exists()) {
+        let userDetail = data.val()
 
-            db.ref('reservations')
-              .orderByChild('travellerId')
-              .equalTo(uid)
-              .once('value', history => {
-                if (history.exists()) {
-                  userDetail['reservationHistory'] = Object.values(history.val())
-                } else {
-                  userDetail['reservationHistory'] = []
-                }
+        db.ref('reservations')
+          .orderByChild('travellerId')
+          .equalTo(uid)
+          .once('value', history => {
+            if (history.exists()) {
+              userDetail['reservationHistory'] = Object.values(history.val())
+            } else {
+              userDetail['reservationHistory'] = []
+            }
 
-                response.json({ data: userDetail })
-              })
-          } else {
-            throw new Error('User not found!')
-          }
-        })
-        .catch(function (error) {
-          console.error(error)
-          response.status(500).json({ error: error.message })
-        })
+            response.json(userDetail)
+          })
+      } else {
+        throw new Error('User not found!')
+      }
     })
     .catch(function (error) {
       console.error(error)
-      response.status(500).json({ error: error })
+      response.status(500).json({ error: error.message })
     })
 })
 
@@ -284,7 +234,7 @@ router.get('/photographers/:uid', function (request, response) {
                       photographerData['reservationHistory'] = []
                     }
 
-                    response.json({ data: photographerData })
+                    response.json(photographerData)
                   })
               })
           } else {
@@ -399,7 +349,7 @@ router.get('/reservations', function (request, response) {
         item['photographer'] = photographer
         return item
       })
-      response.json({ data: result })
+      response.json(result)
     })
     .catch(function (error) {
       console.error(error)
