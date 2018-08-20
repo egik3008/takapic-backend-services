@@ -54,47 +54,7 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
   return []
 }
 
-router.get('/photographers', function (request, response) {
-  const destination = request.query['filter']['destination']
-  const date = request.query['filter']['date']
-  const search = {
-    query: destination,
-    hitsPerPage: process.env.ALGOLIA_HITS_PER_PAGE,
-    page: request.query['filter']['page'],
-    attributesToHighlight: ['locationMerge']
-  }
-
-  if (date !== '') {
-    search.filters = 'NOT notAvailableDates:' + date
-  }
-
-  fetchCurrencies()
-    .then(function (currencies) {
-      indexPhotographers.search(search, function searchDone (error, content) {
-        if (error) {
-          console.error(error)
-          response.json({ data: [] })
-        } else {
-          const convertedData = convertPriceCurrency(content.hits, 'priceStartFrom', currencies)
-          response.json({
-            data: convertedData,
-            metaInfo: {
-              nbHits: content.nbHits,
-              page: content.page,
-              nbPages: content.nbPages,
-              hitsPerPage: content.hitsPerPage
-            }
-          })
-        }
-      })
-    })
-    .catch(function (error) {
-      console.error(error)
-      response.json({ data: [] })
-    })
-})
-
-router.get('/admin/users', function (request, response) {
+router.get('/users', function (request, response) {
   const filterQueryObject = request.query['filter']
   const sortQueryObject = request.query['sort']
   const userType = request.query['userType'] === 'p' ? 'photographer' : 'traveller'
@@ -150,125 +110,6 @@ router.get('/admin/users', function (request, response) {
       console.error(error)
       response.json({ data: [] })
     })
-})
-
-router.get('/topPhotographers', function (request, response) {
-  indexPhotographers.search(
-    {
-      attributesToHighlight: ['locationMerge'],
-      facets: ['topPhotographer', 'userType'],
-      facetFilters: [['topPhotographer:true']]
-    },
-    function searchDone (error, content) {
-      if (error) {
-        console.error(error)
-        response.json({ data: [] })
-      } else {
-        response.json({ data: content.hits })
-      }
-    }
-  )
-})
-
-router.get('/photographers/:uid', function (request, response) {
-  fetchCurrencies()
-    .then(function (currencies) {
-      const uid = request.params.uid
-      const db = firebaseAdmin.database()
-
-      db.ref('photographer_service_information')
-        .child(uid)
-        .once('value')
-        .then(function (data) {
-          let photographerData = data.val()
-          if (photographerData) {
-            db.ref('user_metadata')
-              .child(uid)
-              .once('value')
-              .then(function (userMetadataData) {
-                const userMetadataDataVal = userMetadataData.val()
-                const userMetadataDataItem = [userMetadataDataVal]
-                const packagesPriceModified = convertPriceCurrency(
-                  photographerData.packagesPrice,
-                  'price',
-                  currencies,
-                  userMetadataDataVal.currency
-                )
-
-                photographerData.packagesPrice = packagesPriceModified
-                photographerData.userMetadata = convertPriceCurrency(
-                  userMetadataDataItem,
-                  'priceStartFrom',
-                  currencies
-                )[0]
-
-                db.ref('reservations')
-                  .orderByChild('photographerId')
-                  .equalTo(uid)
-                  .once('value', history => {
-                    if (history.exists()) {
-                      photographerData['reservationHistory'] = Object.values(history.val())
-                    } else {
-                      photographerData['reservationHistory'] = []
-                    }
-
-                    response.json({ data: photographerData })
-                  })
-              })
-          } else {
-            response.json({ data: {} })
-          }
-        })
-    })
-    .catch(function (error) {
-      console.error(error)
-      response.json({ data: {} })
-    })
-})
-
-router.get('/cities', function (request, response) {
-  const qry = request.query['kwd']
-  const countryCode = request.query['countryCode']
-  const continent = request.query['continent']
-  const geo = new Geode('okaprinarjaya', { countryCode: countryCode })
-
-  geo.search({ q: qry, continentCode: continent, featureClass: 'A' }, function (error, result) {
-    if (error) {
-      console.log(error)
-    } else {
-      let results = []
-      result.geonames.forEach(function (item) {
-        results.push({
-          value: item.toponymName,
-          label: item.toponymName,
-          adm1: item.adminName1
-        })
-      })
-      response.json({ data: results })
-    }
-  })
-})
-
-router.get('/locations', function (request, response) {
-  indexPhotographers.search(
-    {
-      query: request.query.keyword,
-      distinct: true,
-      attributesToHighlight: ['countryName'],
-      attributesToRetrieve: ['countryName', 'locationAdmLevel1', 'locationAdmLevel2']
-    },
-    function searchDone (error, content) {
-      if (error) {
-        console.error(error)
-        response.json({ data: [] })
-      } else {
-        const results = content.hits.map(function (item) {
-          return { label: item.locationAdmLevel2 + ', ' + item.locationAdmLevel1 + ', ' + item.countryName }
-        })
-        response.json({ data: results })
-      }
-    }
-  )
 })
 
 router.get('/users/:uid', function (request, response) {
@@ -329,21 +170,43 @@ router.put('/users/:uid', function (request, response) {
     })
 })
 
-router.put('/photographers/:uid', function (request, response) {
-  const uid = request.params.uid
-  const body = request.body
-  const db = firebaseAdmin.database()
-  body['updated'] = Math.round((new Date()).getTime() / 1000)
+router.get('/photographers', function (request, response) {
+  const destination = request.query['filter']['destination']
+  const date = request.query['filter']['date']
+  const search = {
+    query: destination,
+    hitsPerPage: process.env.ALGOLIA_HITS_PER_PAGE,
+    page: request.query['filter']['page'],
+    attributesToHighlight: ['locationMerge']
+  }
 
-  db.ref('photographer_service_information')
-    .child(uid)
-    .set(body)
-    .then(() => {
-      response.json({ message: 'Success update photographer!' })
+  if (date !== '') {
+    search.filters = 'NOT notAvailableDates:' + date
+  }
+
+  fetchCurrencies()
+    .then(function (currencies) {
+      indexPhotographers.search(search, function searchDone (error, content) {
+        if (error) {
+          console.error(error)
+          response.json({ data: [] })
+        } else {
+          const convertedData = convertPriceCurrency(content.hits, 'priceStartFrom', currencies)
+          response.json({
+            data: convertedData,
+            metaInfo: {
+              nbHits: content.nbHits,
+              page: content.page,
+              nbPages: content.nbPages,
+              hitsPerPage: content.hitsPerPage
+            }
+          })
+        }
+      })
     })
     .catch(function (error) {
       console.error(error)
-      response.status(500).json({ error: error.message })
+      response.json({ data: [] })
     })
 })
 
@@ -377,6 +240,143 @@ router.post('/photographers', function (request, response) {
       console.error(error)
       response.status(500).json({ error: error.message })
     })
+})
+
+router.get('/photographers/:uid', function (request, response) {
+  fetchCurrencies()
+    .then(function (currencies) {
+      const uid = request.params.uid
+      const db = firebaseAdmin.database()
+
+      db.ref('photographer_service_information')
+        .child(uid)
+        .once('value')
+        .then(function (data) {
+          let photographerData = data.val()
+          if (photographerData) {
+            db.ref('user_metadata')
+              .child(uid)
+              .once('value')
+              .then(function (userMetadataData) {
+                const userMetadataDataVal = userMetadataData.val()
+                const userMetadataDataItem = [userMetadataDataVal]
+                const packagesPriceModified = convertPriceCurrency(
+                  photographerData.packagesPrice,
+                  'price',
+                  currencies,
+                  userMetadataDataVal.currency
+                )
+
+                photographerData.packagesPrice = packagesPriceModified
+                photographerData.userMetadata = convertPriceCurrency(
+                  userMetadataDataItem,
+                  'priceStartFrom',
+                  currencies
+                )[0]
+
+                db.ref('reservations')
+                  .orderByChild('photographerId')
+                  .equalTo(uid)
+                  .once('value', history => {
+                    if (history.exists()) {
+                      photographerData['reservationHistory'] = Object.values(history.val())
+                    } else {
+                      photographerData['reservationHistory'] = []
+                    }
+
+                    response.json({ data: photographerData })
+                  })
+              })
+          } else {
+            response.json({ data: {} })
+          }
+        })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.json({ data: {} })
+    })
+})
+
+router.put('/photographers/:uid', function (request, response) {
+  const uid = request.params.uid
+  const body = request.body
+  const db = firebaseAdmin.database()
+  body['updated'] = Math.round((new Date()).getTime() / 1000)
+
+  db.ref('photographer_service_information')
+    .child(uid)
+    .set(body)
+    .then(() => {
+      response.json({ message: 'Success update photographer!' })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
+    })
+})
+
+router.get('/topPhotographers', function (request, response) {
+  indexPhotographers.search(
+    {
+      attributesToHighlight: ['locationMerge'],
+      facets: ['topPhotographer', 'userType'],
+      facetFilters: [['topPhotographer:true']]
+    },
+    function searchDone (error, content) {
+      if (error) {
+        console.error(error)
+        response.json({ data: [] })
+      } else {
+        response.json({ data: content.hits })
+      }
+    }
+  )
+})
+
+router.get('/cities', function (request, response) {
+  const qry = request.query['kwd']
+  const countryCode = request.query['countryCode']
+  const continent = request.query['continent']
+  const geo = new Geode('okaprinarjaya', { countryCode: countryCode })
+
+  geo.search({ q: qry, continentCode: continent, featureClass: 'A' }, function (error, result) {
+    if (error) {
+      console.log(error)
+    } else {
+      let results = []
+      result.geonames.forEach(function (item) {
+        results.push({
+          value: item.toponymName,
+          label: item.toponymName,
+          adm1: item.adminName1
+        })
+      })
+      response.json({ data: results })
+    }
+  })
+})
+
+router.get('/locations', function (request, response) {
+  indexPhotographers.search(
+    {
+      query: request.query.keyword,
+      distinct: true,
+      attributesToHighlight: ['countryName'],
+      attributesToRetrieve: ['countryName', 'locationAdmLevel1', 'locationAdmLevel2']
+    },
+    function searchDone (error, content) {
+      if (error) {
+        console.error(error)
+        response.json({ data: [] })
+      } else {
+        const results = content.hits.map(function (item) {
+          return { label: item.locationAdmLevel2 + ', ' + item.locationAdmLevel1 + ', ' + item.countryName }
+        })
+        response.json({ data: results })
+      }
+    }
+  )
 })
 
 router.get('/reservations', function (request, response) {
