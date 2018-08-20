@@ -379,4 +379,21 @@ router.post('/photographers', function (request, response) {
     })
 })
 
+router.get('/reservations', function (request, response) {
+  const db = firebaseAdmin.database()
+  db.ref('reservations')
+    .once('value', data => {
+      const result = Object.keys(data.val()).map((k) => {
+        const item = data.val()[k]
+        item['id'] = k
+        return item
+      })
+      response.json({ data: result })
+    })
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
+    })
+})
+
 module.exports = router
