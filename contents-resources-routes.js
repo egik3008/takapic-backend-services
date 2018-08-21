@@ -65,7 +65,7 @@ router.get('/users', function (request, response) {
         const item = data.val()[k]
         return item
       })
-      response.json(result)
+      response.send(result)
     })
 })
 
@@ -90,7 +90,7 @@ router.get('/users/:uid', function (request, response) {
               userDetail['reservationHistory'] = []
             }
 
-            response.json(userDetail)
+            response.send(userDetail)
           })
       } else {
         throw new Error('User not found!')
@@ -106,13 +106,13 @@ router.put('/users/:uid', function (request, response) {
   const uid = request.params.uid
   const body = request.body
   const db = firebaseAdmin.database()
-  body['updated'] = Math.round((new Date()).getTime() / 1000)
+  body['updated'] = new Date().getTime()
 
   db.ref('user_metadata')
     .child(uid)
     .set(body)
-    .then(function (data) {
-      response.json({ message: 'Success update user!' })
+    .then(() => {
+      response.send({ message: 'Success update user!' })
     })
     .catch(function (error) {
       console.error(error)
@@ -166,8 +166,9 @@ router.post('/photographers', function (request, response) {
   const uid = uuid()
   let userMetadata = {}
   let photographer = {}
-  body['created'] = Math.round((new Date()).getTime() / 1000)
-  body.userMetadata['created'] = Math.round((new Date()).getTime() / 1000)
+  body['created'] = new Date().getTime()
+  body.userMetadata['uid'] = uid
+  body.userMetadata['created'] = new Date().getTime()
   body.userMetadata['userType'] = 'photographer'
   userMetadata[uid] = body.userMetadata
   delete body['userMetadata']
@@ -179,7 +180,7 @@ router.post('/photographers', function (request, response) {
       db.ref('photographer_service_information')
         .update(photographer)
         .then(() => {
-          response.json({ message: 'Success add photographer!' })
+          response.status(201).send({ message: 'Success add photographer!' })
         })
         .catch(function (error) {
           console.error(error)
@@ -234,11 +235,11 @@ router.get('/photographers/:uid', function (request, response) {
                       photographerData['reservationHistory'] = []
                     }
 
-                    response.json(photographerData)
+                    response.send(photographerData)
                   })
               })
           } else {
-            response.json({ data: {} })
+            response.send({ data: {} })
           }
         })
     })
@@ -252,13 +253,13 @@ router.put('/photographers/:uid', function (request, response) {
   const uid = request.params.uid
   const body = request.body
   const db = firebaseAdmin.database()
-  body['updated'] = Math.round((new Date()).getTime() / 1000)
+  body['updated'] = new Date().getTime()
 
   db.ref('photographer_service_information')
     .child(uid)
     .set(body)
     .then(() => {
-      response.json({ message: 'Success update photographer!' })
+      response.send({ message: 'Success update photographer!' })
     })
     .catch(function (error) {
       console.error(error)
@@ -349,7 +350,7 @@ router.get('/reservations', function (request, response) {
         item['photographer'] = photographer
         return item
       })
-      response.json(result)
+      response.send(result)
     })
     .catch(function (error) {
       console.error(error)
@@ -390,7 +391,7 @@ router.get('/reservations/:uid', function (request, response) {
               }
 
               item['package'] = packageDetail
-              response.json(item)
+              response.send(item)
             })
         })
     })
