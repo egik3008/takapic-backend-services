@@ -370,9 +370,9 @@ router.get('/reservations', function (request, response) {
               }
             }
 
-            if ('total' in item) {
-              item['totalPrice'] = item.total
-            }
+            // if ('total' in item) {
+            //   item['totalPrice'] = item.total
+            // }
 
             item['id'] = k
             item['traveler'] = traveler
@@ -380,14 +380,15 @@ router.get('/reservations', function (request, response) {
             return item
           })
 
-          const priceModified = convertPriceCurrency(
-            result,
-            'totalPrice',
-            currencies,
-            'IDR'
-          )
+          // const priceModified = convertPriceCurrency(
+          //   result,
+          //   'totalPrice',
+          //   currencies,
+          //   'IDR'
+          // )
 
-          response.send(priceModified)
+          // response.send(priceModified)
+          response.send(result)
         })
         .catch(function (error) {
           console.error(error)
