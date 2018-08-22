@@ -54,19 +54,40 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
   return []
 }
 
-router.get('/users', function (request, response) {
+router.get('/users', async (request, response) => {
   const db = firebaseAdmin.database()
   const userType = request.query['type'] === 'p' ? 'photographer' : 'traveller'
-
-  db.ref('user_metadata')
+  let result
+  let data = await db.ref('user_metadata')
     .orderByChild('userType').equalTo(userType)
-    .on('value', (data) => {
-      const result = Object.keys(data.val()).map((k) => {
-        const item = data.val()[k]
-        return item
-      })
-      response.send(result)
+    .once('value')
+    .catch(function (error) {
+      console.error(error)
+      response.status(500).json({ error: error.message })
     })
+
+  data = Object.keys(data.val()).map((k) => {
+    const item = data.val()[k]
+    return item
+  })
+
+  if (userType === 'photographer') {
+    let photographersInfo = (await db.ref('photographer_service_information')
+      .once('value')
+      .catch(function (error) {
+        console.error(error)
+        response.status(500).json({ error: error.message })
+      })).val()
+
+    result = data.map(item => {
+      item['photographerInfo'] = photographersInfo[item['uid']]
+      return item
+    })
+
+    response.send(result)
+  } else {
+    response.send(data)
+  }
 })
 
 router.get('/users/:uid', function (request, response) {
@@ -331,26 +352,47 @@ router.get('/locations', function (request, response) {
 })
 
 router.get('/reservations', function (request, response) {
-  const db = firebaseAdmin.database()
-  db.ref('reservations')
-    .once('value', data => {
-      const result = Object.keys(data.val()).map((k) => {
-        const item = data.val()[k]
-        const userKeys = Object.keys(item.uidMapping)
-        let traveler, photographer
-        for (const key in userKeys) {
-          if (item.uidMapping[userKeys[key]].photoProfileUrl === '-') {
-            traveler = item.uidMapping[userKeys[key]].displayName
-          } else {
-            photographer = item.uidMapping[userKeys[key]].displayName
-          }
-        }
-        item['id'] = k
-        item['traveler'] = traveler
-        item['photographer'] = photographer
-        return item
-      })
-      response.send(result)
+  fetchCurrencies()
+    .then(function (currencies) {
+      const db = firebaseAdmin.database()
+      db.ref('reservations')
+        .once('value', data => {
+          const result = Object.keys(data.val()).map((k) => {
+            const item = data.val()[k]
+            const userKeys = Object.keys(item.uidMapping)
+            let traveler, photographer
+
+            for (const key in userKeys) {
+              if (item.uidMapping[userKeys[key]].photoProfileUrl === '-') {
+                traveler = item.uidMapping[userKeys[key]].displayName
+              } else {
+                photographer = item.uidMapping[userKeys[key]].displayName
+              }
+            }
+
+            if ('total' in item) {
+              item['totalPrice'] = item.total
+            }
+
+            item['id'] = k
+            item['traveler'] = traveler
+            item['photographer'] = photographer
+            return item
+          })
+
+          const priceModified = convertPriceCurrency(
+            result,
+            'totalPrice',
+            currencies,
+            'IDR'
+          )
+
+          response.send(priceModified)
+        })
+        .catch(function (error) {
+          console.error(error)
+          response.status(500).json({ error: error.message })
+        })
     })
     .catch(function (error) {
       console.error(error)
