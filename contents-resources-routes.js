@@ -306,6 +306,24 @@ router.get('/topPhotographers', function (request, response) {
   )
 })
 
+router.get('/countries', function (request, response) {
+  const db = firebaseAdmin.database()
+  
+  const countriesRef = db.ref('/countries');
+    countriesRef.once('value', snapshot => {
+      const countriesSource = snapshot.val();
+      let countriesList = [];
+      for (let key in countriesSource) {
+        countriesList.push({
+          value: countriesSource[key].phone_dial_code,
+          label: `${countriesSource[key].name} (${countriesSource[key].phone_dial_code})`
+        });
+      }
+
+      response.json(countriesList); 
+  })
+})
+
 router.get('/cities', function (request, response) {
   const qry = request.query['kwd']
   const countryCode = request.query['countryCode']
