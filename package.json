@@ -46,6 +46,7 @@
   },
   "scripts": {
     "precommit": "lint-staged",
+    "start": "nodemon api-services.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   }
 }
