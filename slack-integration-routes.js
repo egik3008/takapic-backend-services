@@ -38,6 +38,9 @@ router.post('/midtrans-payment-notification', function (request, response) {
   const reservationStatus = transaction_status === "settlement" ? "PAID" : null;
 
   if (reservationStatus) {
+    let takapicDomain = process.env.TAKAPIC_DOMAIN;
+    if (!(takapicDomain && takapicDomain !== "")) takapicDomain = "https://takapic.com";
+
     const db = firebaseAdmin.database();
     db
       .ref('reservations')
@@ -56,15 +59,18 @@ router.post('/midtrans-payment-notification', function (request, response) {
           .child(order_id)
           .update({ status: reservationStatus })
           .then(() => {
-            
             // Start - Send notification email
             const tableStr = "Congratulations! you have a new booking!<br />Please review and accept if you are ok" +
-              "<br /><br /><br />" +
-              "<table border='1'>" +
-              "<tr><td>Customer Name</td><td>"+ reservationData.uidMapping[travellerId].displayName +"</td></tr>" +
-              "<tr><td>Destination</td><td>"+ reservationData.destination +"</td></tr>" +
-              "<tr><td>Start Date Time</td><td>" + reservationData.startDateTime + "</td></tr>" +
-              "</table>";
+              "<br /><br />" +
+              "<table>" +
+              "<tr><td>Customer Name</td><td>:</td><td>"+ reservationData.uidMapping[travellerId].displayName +"</td></tr>" +
+              "<tr><td>Destination</td><td>:</td><td>"+ reservationData.destination +"</td></tr>" +
+              "<tr><td>Start Date Time</td><td>:</td><td>" + reservationData.startDateTime + "</td></tr>" +
+              "</table>" + 
+              "<br/><br/><br/>" +
+              "<a style='text-align:center;border-radius:3px; font-size:15px;color:white;text-decoration:none; padding:14px 7px 14px 7px; width:260px;display:block;background-color:#007ee6;'" + 
+              "href='"+ takapicDomain +"/me/reservations' target='_blank'>" +
+              "Click here to see and accept booking</a>";
 
             const messageData = {
               receiverName: photographerName,
