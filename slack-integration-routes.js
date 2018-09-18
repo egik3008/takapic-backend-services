@@ -38,7 +38,7 @@ router.post('/midtrans-payment-notification', function (request, response) {
   const reservationStatus = transaction_status === "settlement" ? "PAID" : null;
 
   if (reservationStatus) {
-    let takapicDomain = process.env.TAKAPIC_DOMAIN;
+    let takapicDomain = process.env.GOOGLE_SIGN_IN_REDIRECT;
     if (!(takapicDomain && takapicDomain !== "")) takapicDomain = "https://takapic.com";
 
     const db = firebaseAdmin.database();

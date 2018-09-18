@@ -131,7 +131,7 @@ router.put('/users/:uid', function (request, response) {
 
   db.ref('user_metadata')
     .child(uid)
-    .set(body)
+    .update(body)
     .then(() => {
       response.send({ message: 'Success update user!' })
     })
@@ -139,6 +139,21 @@ router.put('/users/:uid', function (request, response) {
       console.error(error)
       response.status(500).json({ error: error.message })
     })
+})
+
+router.put('/auth/update/:uid', function (request, response) {
+  const uid = request.params.uid;
+  const data = request.body;
+
+  firebaseAdmin.auth().updateUser(uid, data)
+  .then(function(userRecord) {
+    response.status(200).send({message: "Success update auth user!"})
+    // response.status(200).json(userRecord.toJSON())
+  })
+  .catch(function(error) {
+    console.log("Error updating user:", error);
+    response.status(500).json({ error: error.message })
+  });
 })
 
 router.get('/photographers', function (request, response) {
