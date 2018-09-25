@@ -1,7 +1,7 @@
 const path = require('path')
 const dotenv = require('dotenv')
 const express = require('express')
-const {firebaseAdmin, admin} = require('./commons/firebaseAdmin')
+const firebaseAdmin = require('./commons/firebaseAdmin')
 const algoliasearch = require('algoliasearch')
 const Geode = require('geode')
 const uuid = require('uuid/v4')
@@ -154,7 +154,7 @@ router.put('/auth/update/:uid', function (request, response) {
         .update({
           photoProfileUrl: data.photoURL,
           photoProfilePublicId: data.publicID,
-          updated: admin.database.ServerValue.TIMESTAMP
+          updated: new Date().getTime()
         });
 
 

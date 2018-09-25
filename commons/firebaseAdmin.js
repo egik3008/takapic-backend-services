@@ -10,8 +10,4 @@ const app = firebaseAdmin.initializeApp({
   databaseURL: process.env.FIREBASE_WEB_DATABASE_URL
 });
 
-module.exports.admin = firebaseAdmin;
-module.exports = {
-  firebaseAdmin: app,
-  admin: firebaseAdmin
-}
+module.exports = app;
