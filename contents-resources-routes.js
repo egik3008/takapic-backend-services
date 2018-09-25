@@ -1,7 +1,7 @@
 const path = require('path')
 const dotenv = require('dotenv')
 const express = require('express')
-const firebaseAdmin = require('./commons/firebaseAdmin')
+const {firebaseAdmin, admin} = require('./commons/firebaseAdmin')
 const algoliasearch = require('algoliasearch')
 const Geode = require('geode')
 const uuid = require('uuid/v4')
@@ -147,8 +147,21 @@ router.put('/auth/update/:uid', function (request, response) {
 
   firebaseAdmin.auth().updateUser(uid, data)
   .then(function(userRecord) {
-    response.status(200).send({message: "Success update auth user!"})
-    // response.status(200).json(userRecord.toJSON())
+    if ('photoURL' in data) {
+      const db = firebaseAdmin.database();
+      db.ref('user_metadata')
+        .child(uid)
+        .update({
+          photoProfileUrl: data.photoURL,
+          photoProfilePublicId: data.publicID,
+          updated: admin.database.ServerValue.TIMESTAMP
+        });
+
+
+        response.status(200).send({message: "Success update auth user!"})
+    } else {
+      response.status(200).send({message: "Success update auth user!"})
+    }
   })
   .catch(function(error) {
     console.log("Error updating user:", error);
