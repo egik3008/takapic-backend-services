@@ -54,92 +54,9 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
   return []
 }
 
-router.get('/users', async (request, response) => {
-  const db = firebaseAdmin.database()
-  const userType = request.query['type'] === 'p' ? 'photographer' : 'traveller'
-  let result
-  let data = await db.ref('user_metadata')
-    .orderByChild('userType').equalTo(userType)
-    .once('value')
-    .catch(function (error) {
-      console.error(error)
-      response.status(500).json({ error: error.message })
-    })
+const usersRouter = require('./api/routes/users');
 
-  data = Object.keys(data.val()).map((k) => {
-    const item = data.val()[k]
-    return item
-  })
-
-  if (userType === 'photographer') {
-    let photographersInfo = (await db.ref('photographer_service_information')
-      .once('value')
-      .catch(function (error) {
-        console.error(error)
-        response.status(500).json({ error: error.message })
-      })).val()
-
-    result = data.map(item => {
-      item['photographerInfo'] = photographersInfo[item['uid']]
-      return item
-    })
-
-    response.send(result)
-  } else {
-    response.send(data)
-  }
-})
-
-router.get('/users/:uid', function (request, response) {
-  const uid = request.params.uid
-  const db = firebaseAdmin.database()
-
-  db.ref('user_metadata')
-    .child(uid)
-    .once('value')
-    .then(function (data) {
-      if (data.exists()) {
-        let userDetail = data.val()
-
-        db.ref('reservations')
-          .orderByChild('travellerId')
-          .equalTo(uid)
-          .once('value', history => {
-            if (history.exists()) {
-              userDetail['reservationHistory'] = Object.values(history.val())
-            } else {
-              userDetail['reservationHistory'] = []
-            }
-
-            response.send(userDetail)
-          })
-      } else {
-        throw new Error('User not found!')
-      }
-    })
-    .catch(function (error) {
-      console.error(error)
-      response.status(500).json({ error: error.message })
-    })
-})
-
-router.put('/users/:uid', function (request, response) {
-  const uid = request.params.uid
-  const body = request.body
-  const db = firebaseAdmin.database()
-  body['updated'] = new Date().getTime()
-
-  db.ref('user_metadata')
-    .child(uid)
-    .update(body)
-    .then(() => {
-      response.send({ message: 'Success update user!' })
-    })
-    .catch(function (error) {
-      console.error(error)
-      response.status(500).json({ error: error.message })
-    })
-})
+router.use('/users', usersRouter);
 
 router.put('/auth/update/:uid', function (request, response) {
   const uid = request.params.uid;
