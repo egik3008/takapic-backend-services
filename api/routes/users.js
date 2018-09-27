@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const firebase = require('firebase');
 const firebaseAdmin = require('../../commons/firebaseAdmin');
 const { notifyToSlack } = require('../../commons/functions');
 const userConstants = require('../../constants/userConstants');
@@ -105,7 +106,7 @@ router.post('/', function(request, response) {
             currency: request.body.currency,
             enable: request.body.enable,
             firstLogin: false,
-            created: new Date().getTime(),
+            created: firebase.database.ServerValue.TIMESTAMP ,
           };
 
           if (metaData.userType === userConstants.USER_TYPE_PHOTOGRAPHER) {
@@ -174,8 +175,8 @@ router.post('/', function(request, response) {
 router.put('/:uid', function (request, response) {
     const uid = request.params.uid
     const body = request.body
-    const db = firebaseAdmin.database()
-    body['updated'] = new Date().getTime()
+    const db = firebaseAdmin.database();
+    body['updated'] = firebase.database.ServerValue.TIMESTAMP;
   
     db.ref('user_metadata')
       .child(uid)

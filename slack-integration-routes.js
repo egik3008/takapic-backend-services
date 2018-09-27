@@ -5,6 +5,7 @@ const router = express.Router()
 // ================================================================================
 const path = require('path')
 const dotenv = require('dotenv')
+const firebase = require('firebase')
 const firebaseAdmin = require('./commons/firebaseAdmin')
 const pug = require('pug')
 const sgMail = require('@sendgrid/mail')
@@ -57,7 +58,10 @@ router.post('/midtrans-payment-notification', function (request, response) {
           db
           .ref('reservations')
           .child(order_id)
-          .update({ status: reservationStatus })
+          .update({ 
+            status: reservationStatus,
+            updated: firebase.database.ServerValue.TIMESTAMP  
+          })
           .then(() => {
             // Start - Send notification email
             const tableStr = "Congratulations! you have a new booking!<br />Please review and accept if you are ok" +
