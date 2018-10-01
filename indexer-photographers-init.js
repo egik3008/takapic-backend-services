@@ -27,6 +27,7 @@ function initialImport (dataSnapshot) {
       firebaseObject.defaultDisplayPicturePublicId !== '-'
 
     if (
+      !firebaseObject.indexed && 
       firebaseObject.userType === 'photographer' &&
       hasPhotoProfilePublicId &&
       hasPhoneNumber &&
@@ -42,10 +43,18 @@ function initialImport (dataSnapshot) {
       if (error) {
         throw error
       }
-
+      markToIndexed(objectsToIndex);
       console.log('Firebase -> Algolia import all valid photographers done')
     })
   } else {
     console.log('No data imported')
   }
+}
+
+function markToIndexed(indexedObjects) {
+  indexedObjects.forEach(function(obj) {
+    userMetadataRef.child(obj.uid).update({
+      indexed: true
+    });
+  })
 }

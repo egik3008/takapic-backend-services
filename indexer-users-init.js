@@ -15,9 +15,12 @@ function initialImport (dataSnapshot) {
   const objectsToIndex = []
 
   dataSnapshot.forEach(function (childSnapshot) {
-    const firebaseObject = childSnapshot.val()
-    firebaseObject.objectID = childSnapshot.key
-    objectsToIndex.push(firebaseObject)
+    const firebaseObject = childSnapshot.val();
+    
+    if (!firebaseObject.indexed) {
+      firebaseObject.objectID = childSnapshot.key
+      objectsToIndex.push(firebaseObject)
+    }
   })
 
   if (objectsToIndex.length > 0) {
@@ -26,9 +29,18 @@ function initialImport (dataSnapshot) {
         throw error
       }
 
-      console.log('Firebase -> Algolia import all users (travellers and photographers) done')
+      markToIndexed(objectsToIndex);
+      console.log('Firebase -> Algolia import all users (travellers and photographers) done');
     })
   } else {
     console.log('No data imported')
   }
+}
+
+function markToIndexed(indexedObjects) {
+  indexedObjects.forEach(function(obj) {
+    userMetadataRef.child(obj.uid).update({
+      indexed: true
+    });
+  })
 }
