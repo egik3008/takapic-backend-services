@@ -323,7 +323,7 @@ router.get('/reservations', function (request, response) {
           const result = Object.keys(data.val()).map((k) => {
             const item = data.val()[k]
             const userKeys = Object.keys(item.uidMapping)
-            let traveler, photographer
+            let traveler, photographer, travellerCurrency;
 
             for (const key in userKeys) {
               if (item.uidMapping[userKeys[key]].photoProfileUrl === '-') {
@@ -333,24 +333,14 @@ router.get('/reservations', function (request, response) {
               }
             }
 
-            // if ('total' in item) {
-            //   item['totalPrice'] = item.total
-            // }
 
             item['id'] = k
             item['traveler'] = traveler
             item['photographer'] = photographer
+            item['travellerCurrency'] = travellerCurrency
             return item
           })
 
-          // const priceModified = convertPriceCurrency(
-          //   result,
-          //   'totalPrice',
-          //   currencies,
-          //   'IDR'
-          // )
-
-          // response.send(priceModified)
           response.send(result)
         })
         .catch(function (error) {
@@ -383,11 +373,19 @@ router.get('/reservations/:uid', function (request, response) {
       item['traveler'] = traveler
       item['photographer'] = photographer
 
-      db.ref('albums')
+      // get traveller currency
+      db.ref('user_metadata')
+      .child(item['travellerId'])
+      .once('value', snapshot => {
+        const travellerData = snapshot.val();
+        item['travellerCurrency'] = travellerData.currency || 'USD';
+        // get albums information
+        db.ref('albums')
         .child(uid)
         .once('value', albums => {
           item['albums'] = albums.val()
 
+          // get photographer detail package
           db.ref('photographer_service_information')
             .child(item.photographerId)
             .once('value', detail => {
@@ -400,6 +398,7 @@ router.get('/reservations/:uid', function (request, response) {
               response.send(item)
             })
         })
+      })
     })
     .catch(function (error) {
       console.error(error)
