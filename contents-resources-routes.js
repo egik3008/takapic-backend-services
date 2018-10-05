@@ -373,12 +373,12 @@ router.get('/reservations/:uid', function (request, response) {
       item['traveler'] = traveler
       item['photographer'] = photographer
 
-      // get traveller currency
+      // get photographer currency
       db.ref('user_metadata')
-      .child(item['travellerId'])
+      .child(item['photographerId'])
       .once('value', snapshot => {
-        const travellerData = snapshot.val();
-        item['travellerCurrency'] = travellerData.currency || 'USD';
+        const udata = snapshot.val();
+        item['currency'] = udata.currency || 'IDR';
         // get albums information
         db.ref('albums')
         .child(uid)
