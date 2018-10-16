@@ -44,18 +44,22 @@ async function addIndex (data) {
 async function updateIndex (data) {
   const firebaseObject = data.val();
 
-  if (isPhotographer(firebaseObject) && await isPhotographerProfileCompleted(firebaseObject)) {
-    firebaseObject.objectID = data.key;
-    indexPhotographers.saveObject(firebaseObject, function (error, content) {
-      if (error) {
-        logger.error('Failed to add index: ' + error.message)
-        throw error
-      }
-      logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
-      logger.info(content)
-    })
-  } else {
-    deleteIndex(data);
+  if (isPhotographer(firebaseObject)) {
+    const isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
+
+    if (isProfileCompleted) {
+      firebaseObject.objectID = data.key;
+      indexPhotographers.saveObject(firebaseObject, function (error, content) {
+        if (error) {
+          logger.error('Failed to add index: ' + error.message)
+          throw error
+        }
+        logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
+        // logger.info(content)
+      })
+    } else {
+      deleteIndex(data);
+    }
   }
 }
 
@@ -132,10 +136,11 @@ function isPhotographerProfileCompleted(firebaseObject) {
   if (isCompleted) {
     return database.ref('photographer_service_information')
       .child(firebaseObject.uid)
-      .once('value', snapshot => {
+      .once('value')
+      .then(snapshot => {
         let pService = snapshot.val();
 
-              // has camera equipment
+        // has camera equipment
         if (isCompleted && pService) {
           const hasCameraEquipment = pService.hasOwnProperty('cameraEquipment') 
             && pService.cameraEquipment.hasOwnProperty('body')
