@@ -15,26 +15,14 @@ userMetadataRef.on('child_added', addIndex)
 userMetadataRef.on('child_changed', updateIndex)
 userMetadataRef.on('child_removed', deleteIndex)
 
-function addIndex (data) {
+async function addIndex (data) {
   const firebaseObject = data.val();
-
+  
   // if obeject hasnt indexed yet
-  if (!firebaseObject.indexed) {
-    var hasPhotoProfilePublicId = firebaseObject.hasOwnProperty('photoProfilePublicId') &&
-    firebaseObject.photoProfilePublicId !== '-'
-
-    var hasPhoneNumber = firebaseObject.hasOwnProperty('phoneNumber') &&
-      firebaseObject.phoneNumber !== '-'
-
-    var hasDefaultDisplayPicturePublicId = firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId') &&
-      firebaseObject.defaultDisplayPicturePublicId !== '-'
-
-    if (
-      firebaseObject.userType === 'photographer' &&
-      hasPhotoProfilePublicId &&
-      hasPhoneNumber &&
-      hasDefaultDisplayPicturePublicId
-    ) {
+  if (isPhotographer(firebaseObject) && !firebaseObject.indexed) {  
+    var isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
+    
+    if (isProfileCompleted) {
       markToIndexed(firebaseObject)
       .then(() => {
         firebaseObject.objectID = data.key
@@ -53,33 +41,22 @@ function addIndex (data) {
   }
 }
 
-function updateIndex (data) {
+async function updateIndex (data) {
   const firebaseObject = data.val();
-  var hasPhotoProfilePublicId = firebaseObject.hasOwnProperty('photoProfilePublicId') &&
-    firebaseObject.photoProfilePublicId !== '-'
 
-    var hasPhoneNumber = firebaseObject.hasOwnProperty('phoneNumber') &&
-      firebaseObject.phoneNumber !== '-'
-
-    var hasDefaultDisplayPicturePublicId = firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId') &&
-      firebaseObject.defaultDisplayPicturePublicId !== '-'
-
-    if (
-      firebaseObject.userType === 'photographer' &&
-      hasPhotoProfilePublicId &&
-      hasPhoneNumber &&
-      hasDefaultDisplayPicturePublicId
-    ) {
-      firebaseObject.objectID = data.key;
-      indexPhotographers.saveObject(firebaseObject, function (error, content) {
-        if (error) {
-          logger.error('Failed to add index: ' + error.message)
-          throw error
-        }
-        logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
-        logger.info(content)
-      })
-    }
+  if (isPhotographer(firebaseObject) && await isPhotographerProfileCompleted(firebaseObject)) {
+    firebaseObject.objectID = data.key;
+    indexPhotographers.saveObject(firebaseObject, function (error, content) {
+      if (error) {
+        logger.error('Failed to add index: ' + error.message)
+        throw error
+      }
+      logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
+      logger.info(content)
+    })
+  } else {
+    deleteIndex(data);
+  }
 }
 
 function deleteIndex (data) {
@@ -89,9 +66,17 @@ function deleteIndex (data) {
       logger.error('Failed to delete index: ' + error.message)
       throw error
     }
-    logger.info('Firebase object deleted from Algolia - ObjectID = ' + firebaseObject.objectID)
+    logger.info('Firebase object deleted from Algolia - ObjectID = ' + objectID)
     logger.info(content)
   })
+}
+
+
+/**
+ * check if this user type is photographer
+ */
+function isPhotographer(firebaseObject) {
+  return (firebaseObject.userType === 'photographer');
 }
 
 /**
@@ -103,4 +88,70 @@ function markToIndexed(indexedObject) {
   return userMetadataRef.child(indexedObject.uid).update({
     indexed: true
   });
+}
+
+/**
+ * check if profile photographer is completed
+ */
+function isPhotographerProfileCompleted(firebaseObject) {
+  let isCompleted = true;
+
+  // has photo profile
+  var hasPhotoProfilePublicId = firebaseObject.hasOwnProperty('photoProfilePublicId') 
+    && firebaseObject.photoProfilePublicId !== '-';
+
+  if (!hasPhotoProfilePublicId) isCompleted = false;
+
+
+  // has phone number
+  if (isCompleted) {
+    var hasPhoneNumber = firebaseObject.hasOwnProperty('phoneNumber') 
+      && firebaseObject.phoneNumber !== '-';
+    if (!hasPhoneNumber) isCompleted = false;
+  }
+
+  // has default portfolio
+  if (isCompleted) {
+    var hasDefaultDisplayPicturePublicId = firebaseObject.hasOwnProperty('defaultDisplayPicturePublicId') 
+      && firebaseObject.defaultDisplayPicturePublicId !== '-';
+    
+      if (!hasDefaultDisplayPicturePublicId) isCompleted = false;
+  }
+
+  // has start price
+  if (isCompleted) {
+    var hasStartPrice = firebaseObject.hasOwnProperty('priceStartFrom') 
+      && Number(firebaseObject.priceStartFrom) > 0;
+    
+      if (!hasStartPrice) isCompleted = false;
+  }
+
+
+  //check photographer services
+
+  if (isCompleted) {
+    return database.ref('photographer_service_information')
+      .child(firebaseObject.uid)
+      .once('value', snapshot => {
+        let pService = snapshot.val();
+
+              // has camera equipment
+        if (isCompleted && pService) {
+          const hasCameraEquipment = pService.hasOwnProperty('cameraEquipment') 
+            && pService.cameraEquipment.hasOwnProperty('body')
+            && (Object.keys(pService.cameraEquipment.body).length > 0)
+            && pService.cameraEquipment.hasOwnProperty('lens')
+            && (Object.keys(pService.cameraEquipment.lens).length > 0)
+
+            if (!hasCameraEquipment) isCompleted = false;
+        }
+        return isCompleted;
+      });
+  } else {
+    var promise = new Promise(function(resolve, reject) {
+      resolve(isCompleted);
+    });
+  
+    return promise;
+  }
 }

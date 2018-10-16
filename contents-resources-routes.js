@@ -100,6 +100,7 @@ router.get('/photographers', function (request, response) {
     search.filters = 'NOT notAvailableDates:' + date
   }
 
+  // convert currencies
   fetchCurrencies()
     .then(function (currencies) {
       indexPhotographers.search(search, function searchDone (error, content) {
