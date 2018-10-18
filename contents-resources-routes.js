@@ -55,8 +55,10 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
 }
 
 const usersRouter = require('./api/routes/users');
-
 router.use('/users', usersRouter);
+
+const paymentRouter = require('./api/routes/payment');
+router.use('/payment', paymentRouter);
 
 router.put('/auth/update/:uid', function (request, response) {
   const uid = request.params.uid;
