@@ -20,9 +20,9 @@ async function addIndex (data) {
   
   // if obeject hasnt indexed yet
   if (isPhotographer(firebaseObject) && !firebaseObject.indexed) {  
-    var isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
+    const isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
     
-    if (isProfileCompleted) {
+    if (isProfileCompleted && !firebaseObject.hidden) {
       markToIndexed(firebaseObject)
       .then(() => {
         firebaseObject.objectID = data.key
@@ -47,7 +47,7 @@ async function updateIndex (data) {
   if (isPhotographer(firebaseObject)) {
     const isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
 
-    if (isProfileCompleted) {
+    if (isProfileCompleted && !firebaseObject.hidden) {
       firebaseObject.objectID = data.key;
       indexPhotographers.saveObject(firebaseObject, function (error, content) {
         if (error) {
@@ -58,6 +58,7 @@ async function updateIndex (data) {
         // logger.info(content)
       })
     } else {
+      if (firebaseObject.indexed)
       deleteIndex(data);
     }
   }
@@ -71,7 +72,12 @@ function deleteIndex (data) {
       throw error
     }
     logger.info('Firebase object deleted from Algolia - ObjectID = ' + objectID)
-    logger.info(content)
+    logger.info(content);
+
+    // set indexed status to false
+    userMetadataRef.child(objectID).update({
+      indexed: false
+    });
   })
 }
 
