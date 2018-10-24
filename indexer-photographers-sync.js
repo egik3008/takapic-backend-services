@@ -76,7 +76,8 @@ function deleteIndex (data) {
 
     // set indexed status to false
     userMetadataRef.child(objectID).update({
-      indexed: false
+      indexed: false,
+      hidden: true
     });
   })
 }
@@ -96,7 +97,8 @@ function isPhotographer(firebaseObject) {
  */
 function markToIndexed(indexedObject) {
   return userMetadataRef.child(indexedObject.uid).update({
-    indexed: true
+    indexed: true,
+    hidden: false
   });
 }
 
@@ -138,7 +140,6 @@ function isPhotographerProfileCompleted(firebaseObject) {
 
 
   //check photographer services
-
   if (isCompleted) {
     return database.ref('photographer_service_information')
       .child(firebaseObject.uid)
