@@ -22,7 +22,11 @@ async function addIndex (data) {
   if (isPhotographer(firebaseObject) && !firebaseObject.indexed) {  
     const isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
     
-    if (isProfileCompleted && !firebaseObject.hidden) {
+    if (
+        isProfileCompleted 
+        && !firebaseObject.hidden // photographer is not filter/hide from web
+        && firebaseObject.enable !== "0"  // photographer is not blocked
+    ) {
       markToIndexed(firebaseObject)
       .then(() => {
         firebaseObject.objectID = data.key
@@ -49,8 +53,8 @@ async function updateIndex (data) {
 
     if (
         isProfileCompleted 
-        && !firebaseObject.hidden
-        && firebaseObject.enable !== "0"  // photographer is blocked
+        && !firebaseObject.hidden // photographer is not filter/hide from web
+        && firebaseObject.enable !== "0"  // photographer is not blocked
     ) {
       firebaseObject.objectID = data.key;
       indexPhotographers.saveObject(firebaseObject, function (error, content) {
