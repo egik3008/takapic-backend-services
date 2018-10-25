@@ -47,7 +47,11 @@ async function updateIndex (data) {
   if (isPhotographer(firebaseObject)) {
     const isProfileCompleted = await isPhotographerProfileCompleted(firebaseObject);
 
-    if (isProfileCompleted && !firebaseObject.hidden) {
+    if (
+        isProfileCompleted 
+        && !firebaseObject.hidden
+        && firebaseObject.enable !== "0"  // photographer is blocked
+    ) {
       firebaseObject.objectID = data.key;
       indexPhotographers.saveObject(firebaseObject, function (error, content) {
         if (error) {

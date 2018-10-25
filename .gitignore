@@ -10,5 +10,6 @@ logs/*.log
 .env
 nohup.out
 
+firebase-traversal.js
 serviceAccountPrivateKeyDEV.json
 serviceAccountPrivateKeyPROD.json
