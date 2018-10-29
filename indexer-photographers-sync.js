@@ -25,7 +25,7 @@ async function addIndex (data) {
     if (
         isProfileCompleted 
         && !firebaseObject.hidden // photographer is not filter/hide from web
-        && firebaseObject.enable !== "0"  // photographer is not blocked
+        && Number(firebaseObject.enable) !== 0  // photographer is not blocked
     ) {
       markToIndexed(firebaseObject)
       .then(() => {
@@ -54,16 +54,19 @@ async function updateIndex (data) {
     if (
         isProfileCompleted 
         && !firebaseObject.hidden // photographer is not filter/hide from web
-        && firebaseObject.enable !== "0"  // photographer is not blocked
+        && Number(firebaseObject.enable) !== 0  // photographer is not blocked
     ) {
-      firebaseObject.objectID = data.key;
-      indexPhotographers.saveObject(firebaseObject, function (error, content) {
-        if (error) {
-          logger.error('Failed to add index: ' + error.message)
-          throw error
-        }
-        logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
-        // logger.info(content)
+      markToIndexed(firebaseObject)
+      .then(() => {
+        firebaseObject.objectID = data.key;
+        indexPhotographers.saveObject(firebaseObject, function (error, content) {
+          if (error) {
+            logger.error('Failed to add index: ' + error.message)
+            throw error
+          }
+          logger.info('Firebase object indexed in Algolia - ObjectID = ' + firebaseObject.objectID)
+          // logger.info(content)
+        })
       })
     } else {
       if (firebaseObject.indexed)
@@ -104,10 +107,16 @@ function isPhotographer(firebaseObject) {
  * to prevent object being indexed again when the indexer-users-sync service is restarted
  */
 function markToIndexed(indexedObject) {
-  return userMetadataRef.child(indexedObject.uid).update({
-    indexed: true,
-    hidden: false
-  });
+  if (!indexedObject.indexed) {
+    return userMetadataRef.child(indexedObject.uid).update({
+      indexed: true,
+      hidden: false
+    })
+  } else {
+    return new Promise(function(resolve, reject) {
+      resolve();
+    });
+  }
 }
 
 /**
