@@ -70,7 +70,7 @@ async function updateIndex (data) {
       })
     } else {
       if (firebaseObject.indexed)
-      deleteIndex(data);
+      hidePhotographer(data);
     }
   }
 }
@@ -84,12 +84,6 @@ function deleteIndex (data) {
     }
     logger.info('Firebase object deleted from Algolia - ObjectID = ' + objectID)
     logger.info(content);
-
-    // set indexed status to false
-    userMetadataRef.child(objectID).update({
-      indexed: false,
-      hidden: true
-    });
   })
 }
 
@@ -117,6 +111,25 @@ function markToIndexed(indexedObject) {
       resolve();
     });
   }
+}
+
+// hide photographer on takapic platform
+function hidePhotographer(data) {
+  const objectID = data.key
+  indexPhotographers.deleteObject(objectID, function (error, content) {
+    if (error) {
+      logger.error('Failed to delete index: ' + error.message)
+      throw error
+    }
+    logger.info('Firebase object deleted from Algolia - ObjectID = ' + objectID)
+    logger.info(content);
+
+    // set indexed status to false
+    userMetadataRef.child(objectID).update({
+      indexed: false,
+      hidden: true
+    });
+  })
 }
 
 /**
