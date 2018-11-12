@@ -190,5 +190,50 @@ router.put('/:uid', function (request, response) {
       })
 });
 
+router.delete('/traveller/:uid', function(request, response) {
+  const uid = request.params.uid
+  const db = firebaseAdmin.database();
+
+  db.ref('user_metadata')
+      .child(uid)
+      .once('value')
+      .then((snap) => {
+        let status = true;
+        let message = 'Traveller has been deleted.';
+        const user = snap.val();
+
+        if (!user) {
+          status = false,
+          message = "Traveller not found!";
+        }
+        if (user && user.userType !== userConstants.USER_TYPE_TRAVELLER) {
+          status = false,
+          message = "User can't be deleted. User is not a traveller!";
+        }
+
+        if (status) {
+          firebaseAdmin.auth().deleteUser(uid)
+            .then(function() {
+              db.ref('user_metadata').child(uid).remove().then(() => {
+                response.send({ status, message });
+              });
+            })
+            .catch(function(error) {
+              status = false,
+              message = "User can't be deleted. User is not a traveller!";
+
+              response.send({ status, message });
+            });
+
+        } else {
+          response.send({ status, message });
+        }
+      })
+      .catch(function (error) {
+        console.error(error)
+        response.status(500).json({ error: error.message })
+      })
+});
+
 
 module.exports = router;
