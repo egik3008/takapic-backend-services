@@ -170,7 +170,7 @@ function isPhotographerProfileCompleted(firebaseObject) {
 
 
   //check photographer services
-  if (isCompleted) {
+  if (isCompleted && false) { // disable check photographer services for a while
     return database.ref('photographer_service_information')
       .child(firebaseObject.uid)
       .once('value')
