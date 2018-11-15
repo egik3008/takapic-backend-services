@@ -231,7 +231,10 @@ router.delete('/traveller/:uid', function(request, response) {
       })
       .catch(function (error) {
         console.error(error)
-        response.status(500).json({ error: error.message })
+        response.status(500).json({
+          status: false, 
+          message: error.message 
+        })
       })
 });
 
