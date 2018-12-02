@@ -79,7 +79,7 @@ router.post('/midtrans-payment-notification', function (request, response) {
             const messageData = {
               receiverName: photographerName,
               receiverEmail: photographerEmail,
-              emailSubject: "Your client has been successfuly create a payment",
+              emailSubject: "New Booking for you created!",
               emailContent: tableStr
             };
 
