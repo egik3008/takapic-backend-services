@@ -60,6 +60,9 @@ router.use('/users', usersRouter);
 const paymentRouter = require('./api/routes/payment');
 router.use('/payment', paymentRouter);
 
+const vouchersRouter = require('./api/routes/vouchers');
+router.use('/vouchers', vouchersRouter);
+
 router.put('/auth/update/:uid', function (request, response) {
   const uid = request.params.uid;
   const data = request.body;
