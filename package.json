@@ -22,6 +22,7 @@
     "geode": "^1.0.0",
     "json2csv": "^3.11.2",
     "moment": "^2.18.1",
+    "moment-timezone": "^0.5.23",
     "nib": "^1.1.2",
     "paypal-rest-sdk": "^1.8.1",
     "prettier": "^1.14.2",
