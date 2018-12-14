@@ -12,7 +12,7 @@ const TZ = 'Asia/Jakarta';
 
 router.post('/apply', function (request, response) {
     const {
-        code, uid, tz, dest
+        code, uid, tz, dest, reservationDate
     } = request.body;
 
     const db = firebaseAdmin.database();
@@ -45,20 +45,36 @@ router.post('/apply', function (request, response) {
                         code: voucherObj.code,
                         amountIDR: voucherObj.amountIDR,
                         amountUSD: voucherObj.amountUSD,
-                        type: voucherObj.type
+                        type: voucherObj.type,
+                        discountType: voucherObj.discountType
                     };
 
                     
-                    // check user valid date
+                    // check booking period
                     const serverDate = moment().tz(TZ);
                     const validStart = moment(voucherObj.validStart, 'M/D/Y', TZ);
                     const validEnd = moment(voucherObj.validEnd, 'M/D/Y', TZ).add(1, 'days')
                     
-                    if (!((serverDate.isAfter(validStart)) && (serverDate.isBefore(validEnd)))) {
+                    if (!((serverDate.isSameOrAfter(validStart)) && (serverDate.isBefore(validEnd)))) {
                         status = false;
                         voucher = null;
-                        messageTitle = "Voucher code outdate";
-                        message = "Your voucher code has been outdate";
+                        messageTitle = "Invalid Voucher Code";
+                        message = "Voucher code has expired";
+
+                        if (serverDate.isBefore(validStart)) {
+                            message = "Pleas re-enter your voucher code";
+                        }
+                    }
+
+                    const rsrvDate = moment(reservationDate, 'Y-M-D', TZ);
+                    const reservationStart = moment(voucherObj.reservationStart, 'M/D/Y', TZ);
+                    const reservationEnd = moment(voucherObj.reservationEnd, 'M/D/Y', TZ).add(1, 'days')
+                    
+                    if (status && !((rsrvDate.isSameOrAfter(reservationStart)) && (rsrvDate.isBefore(reservationEnd)))) {
+                        status = false;
+                        voucher = null;
+                        messageTitle = "Invalid Voucher Code";
+                        message = "Your start date is not in voucher code photoshoot period";
                     }
 
 
@@ -74,8 +90,8 @@ router.post('/apply', function (request, response) {
                         if (notIcludeDest) {
                             status = false;
                             voucher = null;
-                            messageTitle = "Voucher Invalid";
-                            message = "The destination not included in code voucher";
+                            messageTitle = "Invalid Voucher Code";
+                            message = "Voucher code is not valid for chosen destination";
                         }
                     }
                     
@@ -89,7 +105,7 @@ router.post('/apply', function (request, response) {
                         if (usage.length >= Number(voucherObj.usageLimitUser)) {
                             status = false;
                             voucher = null;
-                            messageTitle = "Voucher code overly used";
+                            messageTitle = "Invalid Voucher Code";
                             message = "this code has reach his limit";
                         }
                     }
@@ -99,7 +115,7 @@ router.post('/apply', function (request, response) {
                         if (redeemList.length >= Number(voucherObj.usageLimitVoucher)) {
                             status = false;
                             voucher = null;
-                            messageTitle = "Voucher code overly used";
+                            messageTitle = "Invalid Voucher Code";
                             message = "this code has reach his limit";
                         }
                     }
@@ -116,7 +132,7 @@ router.post('/apply', function (request, response) {
                 // voucher not found
                 response.status(200).json({
                     status: false,
-                    messageTitle: "Voucher Code didn't work",
+                    messageTitle: "Invalid Voucher Code",
                     message: 'Pleas re-enter your voucher code'
                 })
             }
