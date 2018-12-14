@@ -74,7 +74,7 @@ router.post('/apply', function (request, response) {
                         status = false;
                         voucher = null;
                         messageTitle = "Invalid Voucher Code";
-                        message = "Your start date is not in voucher code photoshoot period";
+                        message = "Voucher code is not valid for chosen start date";
                     }
 
 
@@ -106,7 +106,7 @@ router.post('/apply', function (request, response) {
                             status = false;
                             voucher = null;
                             messageTitle = "Invalid Voucher Code";
-                            message = "this code has reach his limit";
+                            message = "Voucher code has been fully redeemed";
                         }
                     }
 
@@ -116,7 +116,7 @@ router.post('/apply', function (request, response) {
                             status = false;
                             voucher = null;
                             messageTitle = "Invalid Voucher Code";
-                            message = "this code has reach his limit";
+                            message = "Voucher code has been fully redeemed";
                         }
                     }
 
