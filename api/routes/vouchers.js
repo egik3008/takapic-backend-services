@@ -45,6 +45,8 @@ router.post('/apply', function (request, response) {
                         code: voucherObj.code,
                         amountIDR: voucherObj.amountIDR,
                         amountUSD: voucherObj.amountUSD,
+                        maxPercentAmountIDR: voucherObj.maxPercentAmountIDR,
+                        maxPercentAmountUSD: voucherObj.maxPercentAmountUSD,
                         type: voucherObj.type,
                         discountType: voucherObj.discountType
                     };
