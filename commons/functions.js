@@ -5,6 +5,7 @@ const pug = require('pug')
 const sgMail = require('@sendgrid/mail')
 
 dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
+sgMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 module.exports.notifyToSlack = function (username, text, icon = ':information_desk_person:') {
     return axios
@@ -15,35 +16,178 @@ module.exports.notifyToSlack = function (username, text, icon = ':information_de
     });
 }
 
-module.exports.sendEmail = function(
+function sendEmail (template, receiverName, receiverEmail, emailSubject, content) {
+  const rootPath = path.dirname(require.main.filename);
+  const ctpl = pug.compileFile(rootPath + '/email-templates/' + template + '.pug')
+  const message = {
+    to: {
+      name: receiverName,
+      email: receiverEmail
+    },
+    from: {
+      name: 'Takapic Support',
+      email: 'support@takapic.com'
+    },
+    subject: emailSubject,
+    html: ctpl(content)
+  }
+
+  return sgMail.send(message);
+}
+
+module.exports.sendEmailNotification = function (
     receiverName, 
     receiverEmail, 
     emailSubject, 
     emailContent,
-    fromName = 'Takapic Support',
-    fromEmail = 'support@takapic.com'
 ) {
-    const messageData = {
-        receiverName: receiverName,
-        receiverEmail: receiverEmail,
-        emailSubject: emailSubject,
-        emailContent: emailContent
+      const content = { 
+        EMAIL_TITLE: 'Notification', 
+        CUSTOMER_NAME: receiverName, 
+        EMAIL_CONTENT: emailContent 
       };
 
-      const rootPath = path.dirname(require.main.filename);
-      const ctpl = pug.compileFile(rootPath + '/email-templates/notifications.pug')
-      const message = {
-        to: {
-          name: messageData.receiverName,
-          email: messageData.receiverEmail
-        },
-        from: {
-          name: fromName,
-          email: fromEmail
-        },
-        subject: messageData.emailSubject,
-        html: ctpl({ EMAIL_TITLE: 'Notification', CUSTOMER_NAME: messageData.receiverName, EMAIL_CONTENT: messageData.emailContent })
-      }
+      return sendEmail('notifications', 
+          receiverName,
+          receiverEmail,
+          emailSubject,
+          content
+      );
+}
 
-      sgMail.send(message);
+module.exports.sendEmailReview = function(
+  receiverName, 
+  receiverEmail, 
+  emailSubject, 
+  emailContentTitle,
+  emailContentBody,
+  reviewLink,
+) {
+    const content = { 
+        EMAIL_TITLE: 'Review', 
+        EMAIL_CONTENT_TITLE: emailContentTitle, 
+        REVIEW_LINK: reviewLink, 
+        EMAIL_CONTENT_BODY: emailContentBody 
+    };
+
+    return sendEmail('reviews',
+        receiverName,
+        receiverEmail,
+        emailSubject,
+        content
+    );
+}
+
+module.exports.sendEmailBookingTraveller = function(
+  receiverName,
+  receiverEmail,
+  emailSubject,
+  content
+) {
+
+  const emailContent = {
+    MESSAGE_TITLE: content.title,
+    MESSAGE_SUB_TITLE: content.subTitle,
+    PHOTOGRAPHER_NAME: content.photographerName,
+    PHOTOGRAPHER_PHOTO_URL: content.photographerPhotoURL,
+    PHOTOGRAPHER_ADDRESS: content.photographerAddress,
+    PHOTOGRAPHER_ABOUT: content.photographerAbout,
+    PHOTOGRAPHER_PHONE: content.photographerPhone,
+    RESERVATION_DATE: content.reservationDate,
+    RESERVATION_TIME: content.reservationTime,
+    RESERVATION_DURATION: content.reservationDuration,
+    RESERVATION_PEOPLES: content.reservationPeoples,
+  };
+
+  return sendEmail('notification-booked-traveller',
+    receiverName,
+    receiverEmail,
+    emailSubject,
+    emailContent
+  );
+}
+
+module.exports.sendEmailBookingPhotographer = function(
+  receiverName,
+  receiverEmail,
+  emailSubject,
+  content
+) {
+
+  const emailContent = {
+    MESSAGE_TITLE: content.title,
+    MESSAGE_SUB_TITLE: content.subTitle,
+    TRAVELLER_NAME: content.travellerName,
+    TRAVELLER_PHONE: content.travellerPhone,
+    RESERVATION_DATE: content.reservationDate,
+    RESERVATION_TIME: content.reservationTime,
+    RESERVATION_DURATION: content.reservationDuration,
+    RESERVATION_PEOPLES: content.reservationPeoples,
+    RESERVATION_RATE: content.reservationRate,
+    RESERVATION_FEE: content.reservationFee,
+    RESERVATION_TOTAL: content.reservationTotal,
+    RESERVATION_CODE: content.reservationCode,
+  };
+
+  return sendEmail('notification-booked-photographer',
+    receiverName,
+    receiverEmail,
+    emailSubject,
+    emailContent
+  );
+}
+
+
+module.exports.sendEmailPaidTraveller = function(
+  receiverName,
+  receiverEmail,
+  emailSubject,
+  content
+) {
+
+  const emailContent = {
+    TRAVELLER_NAME: content.travellerName,
+    PHOTOGRAPHER_NAME: content.photographerName,
+    PHOTOGRAPHER_PHOTO_URL: content.photographerPhotoURL,
+    PHOTOGRAPHER_ADDRESS: content.photographerAddress,
+    RESERVATION_DATE: content.reservationDate,
+    RESERVATION_TIME: content.reservationTime,
+    RESERVATION_DURATION: content.reservationDuration,
+    RESERVATION_PEOPLES: content.reservationPeoples,
+  };
+
+  return sendEmail('notification-paid-traveller',
+    receiverName,
+    receiverEmail,
+    emailSubject,
+    emailContent
+  );
+}
+
+module.exports.sendEmailPaidPhotographer = function(
+  receiverName,
+  receiverEmail,
+  emailSubject,
+  content
+) {
+
+  const emailContent = {
+    PHOTOGRAPHER_NAME: content.photographerName,
+    RESERVATION_DATE: content.reservationDate,
+    RESERVATION_TIME: content.reservationTime,
+    RESERVATION_DURATION: content.reservationDuration,
+    RESERVATION_PEOPLES: content.reservationPeoples,
+    RESERVATION_RATE: content.reservationRate,
+    RESERVATION_FEE: content.reservationFee,
+    RESERVATION_TOTAL: content.reservationTotal,
+    RESERVATION_CODE: content.reservationCode,
+    RESERVATION_LINK: content.reservationLink,
+  };
+
+  return sendEmail('notification-paid-photographer',
+    receiverName,
+    receiverEmail,
+    emailSubject,
+    emailContent
+  );
 }

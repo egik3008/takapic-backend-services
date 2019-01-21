@@ -1,0 +1,15 @@
+extends layout_new
+
+block content
+  div(style="text-align:center;")
+    div#reviews(style="margin-bottom: 30px;padding-bottom: 20px;border-bottom: dashed #ddd;")
+      img(src="https://res.cloudinary.com/dvdm9a68v/image/upload/c_scale,w_180/v1546953973/assets/rate_review.png" alt="Email Notif")
+    
+    p.customer-name(style="font-size:22px;color:#222222;font-weight:bold") !{EMAIL_CONTENT_TITLE}
+    br
+    a(style="text-align:center;border-radius:7px; color:white;text-decoration:none; padding:14px 7px 14px 7px; width:260px;display:block;background-color:#3aeccb; margin: auto;margin-bottom: 30px;" href=REVIEW_LINK) Start a Review
+    
+    br
+
+    div.reviews-content-wrapper(style="ont-size: 16px; width: 80%; text-align: center; margin: auto") 
+      p.reviews-content !{EMAIL_CONTENT_BODY}

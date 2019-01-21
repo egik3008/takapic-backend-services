@@ -1,0 +1,47 @@
+extends layout_new
+
+block content
+  div(style="margin-bottom: 30px;padding-bottom: 20px;border-bottom: dashed #ddd;")
+    img(src="https://res.cloudinary.com/dvdm9a68v/image/upload/c_scale,w_180/v1548052670/assets/paper_stripes.png" alt="Email Notif" style="display: block;margin: auto;")
+
+  p Hi <strong>#{TRAVELLER_NAME}</strong>,<br>node that this is not a confirmation email - at least not yet.
+
+  p Your request has been successfully made and you have finished your payment
+
+  p You’ll get a response from <strong>#{PHOTOGRAPHER_NAME}</strong> within 24 hours.
+
+  br
+
+  div(style="text-align: center; margin-bottom: 30px;")
+    img(style="border-radius: 50%; object-fit: cover; width: 120px; height: 120px;" src=PHOTOGRAPHER_PHOTO_URL alt=PHOTOGRAPHER_NAME)
+
+    p #{PHOTOGRAPHER_NAME}<br>#{PHOTOGRAPHER_ADDRESS}
+
+  table(style="margin: auto; width: 75%; border: solid 1px; border-collapse: collapse;")
+    tr
+      td(style="padding: 10px; border-top: solid 1px;") Date
+      td(style="padding: 10px; border-top: solid 1px;") : #{RESERVATION_DATE}
+    tr
+      td(style="padding: 10px; border-top: solid 1px;") Time
+      td(style="padding: 10px; border-top: solid 1px;") : #{RESERVATION_TIME}
+    tr
+      td(style="padding: 10px; border-top: solid 1px;") Duration
+      td(style="padding: 10px; border-top: solid 1px;") : #{RESERVATION_DURATION}
+    tr
+      td(style="padding: 10px; border-top: solid 1px;") Number of People
+      td(style="padding: 10px; border-top: solid 1px;") : #{RESERVATION_PEOPLES}
+
+  br
+
+
+  div(style="width: 100%; margin-top: 30px; padding: 20px 0; border-top: solid 1px #ccc; border-bottom: solid 1px #ccc;")
+    div(style="display: inline-block; width: 55%;") Any question, please contact our customer support
+
+    div(style="display: inline-block; color: #3aeccb; width: 40%; float: right; text-align: right;") support@takapic.com
+
+  br
+
+  p
+    strong With Love, Takapic
+
+  

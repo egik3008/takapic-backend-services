@@ -21,18 +21,10 @@ html(
     title #{EMAIL_TITLE}
     style(type="text/css")
       include email-style.css
-  body
-    .container
-      block content
-      br
-      br
-      br
-      br
-      br
-      br
-      br
-      br
-      br
+  body(style="font-family:Helvetica,Arial,sans-serif;color:#595959;margin:0;padding: 40px 200px;font-size:16px;background-color:#d7f9f2;")
+      div(style="background: white; padding: 40px; padding-bottom: 40px;")
+        block content
+      
       br
       table(border="0" cellpadding="0" cellspacing="0" width="500")
         tbody

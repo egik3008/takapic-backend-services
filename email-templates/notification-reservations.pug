@@ -1,0 +1,17 @@
+extends layout_new
+
+block content
+  div(style="margin-bottom: 30px;padding-bottom: 20px;border-bottom: dashed #ddd;")
+    img(src="https://res.cloudinary.com/dvdm9a68v/image/upload/c_scale,w_180/v1546953973/assets/rate_review.png" alt="Email Notif")
+
+  h3(style="text-align: center;") Your request was sent!
+  
+  p(style="font-size:15px;") Hi <strong>#{CUSTOMER_NAME}</strong><br>note that this is not a confirmation email – at least not yet.
+    
+  br
+  a(style="text-align:center;border-radius:7px; font-size:15px;color:white;text-decoration:none; padding:14px 7px 14px 7px; width:260px;display:block;background-color:#3aeccb; margin: auto;margin-bottom: 30px;" href=REVIEW_LINK) Start a Review
+  
+  br
+
+  div.reviews-content-wrapper(style="ont-size: 16px; width: 80%; text-align: center; margin: auto") 
+    p.reviews-content !{EMAIL_CONTENT_BODY}
