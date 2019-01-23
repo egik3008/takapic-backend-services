@@ -41,7 +41,7 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
       item[priceKey + 'IDR'] = inIDR
 
       // Use IDR rates as a base value to convert to USD
-      item[priceKey + 'USD'] = Math.round(rates * inIDR)
+      item[priceKey + 'USD'] = Math.ceil(rates * inIDR)
 
       // Use original price (not converted to IDR before) to convert to USD.
       // This is just an additional optional information.
