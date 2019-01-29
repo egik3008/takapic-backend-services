@@ -1,17 +1,15 @@
 const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
-const moment = require('moment');
-const firebaseAdmin = require('./commons/firebaseAdmin');
 
 const pug = require('pug')
 const sgMail = require('@sendgrid/mail')
 const { 
   sendEmailReview,
   sendEmailBookingTraveller,
-  sendEmailBookingPhotographer
+  sendEmailBookingPhotographer,
+  fetchReservationDetail
 } = require('./commons/functions');
-const { PKG_HOUR } = require('./constants/reservationConstants');
 
 const rootPath = path.dirname(require.main.filename)
 dotenv.config({ path: rootPath + '/.env' })
@@ -198,99 +196,53 @@ router.post('/photo-album-email-reviews', function (req, resp) {
 router.post('/notification-accepted-booking', function (req, resp) {
   
   const { reservationId } = req.body;
+  fetchReservationDetail(reservationId)
+    .then(res => {
+      Promise.all([
+        // send email notif to traveller
+        sendEmailBookingTraveller(
+            res.travellerName,
+            res.travellerEmail,
+            `Booking confirmed for ${res.photographerName} photography service`,
+            {
+                title: 'Your booking is confirmed!',
+                subTitle: "You're going to have an awesome photoshoot with Takapic",
+                photographerName: res.photographerName,
+                photographerPhotoURL: res.photographerPhotoURL,
+                photographerAddress: res.photographerAddress,
+                photographerAbout: res.photographerAbout,
+                photographerPhone: res.photographerPhone,
+                reservationDate: res.reservationDate,
+                reservationTime: res.reservationTime,
+                reservationDuration: res.reservationDuration,
+                reservationPeoples: res.reservationPeoples,
+            }
+        ),
+      
+        // send email notif to photographer
+        sendEmailBookingPhotographer(
+            res.photographerName,
+            res.photographerEmail,
+            `Takapic booking confirmed for ${res.travellerName}`,
+            {
+                title: 'You have accepted a booking!',
+                subTitle: "Well done, you’re going to take some awesome pics with Takapic!",
+                travellerName: res.travellerName,
+                travellerPhone: res.travellerPhone,
+                reservationDate: res.reservationDate,
+                reservationTime: res.reservationTime,
+                reservationDuration: res.reservationDuration,
+                reservationPeoples: res.reservationPeoples,
+                reservationRate: res.reservationRate,
+                reservationFee: res.reservationFee,
+                reservationTotal: res.reservationTotal,
+                reservationCode: res.reservationCode,
+            }
+        )
 
-  console.log(reservationId);
-
-  const db = firebaseAdmin.database();
-  db.ref('reservations')
-    .child(reservationId)
-    .once('value')
-    .then(snap => {
-      const {
-        photographerId,
-        travellerId,
-        startDateTime,
-        packageId,
-        passengers,
-        photographerFeeIDR,
-        photographerFeeUSD,
-        totalPriceIDR,
-        totalPriceUSD,
-        travellerContactPerson = '-',
-        uidMapping
-      } = snap.val();
-
-      const totalIDR = 'IDR ' + Number((totalPriceIDR - ((totalPriceIDR-photographerFeeIDR) * 2))).toLocaleString();
-      const totalUSD = 'USD ' + (totalPriceUSD - ((totalPriceUSD-photographerFeeUSD) * 2));
-
-      const feeIDR = 'IDR ' + Number(photographerFeeIDR).toLocaleString();
-      const feeUSD = 'USD ' + photographerFeeUSD;
-
-      db.ref('user_metadata')
-        .child(photographerId)
-        .once('value')
-        .then(snap => {
-          const {
-            displayName,
-            email,
-            locationMerge,
-            photoProfileUrl,
-            phoneDialCode,
-            phoneNumber,
-            currency
-          } = snap.val();
-
-          Promise.all([
-            // send email notif to traveller
-            sendEmailBookingTraveller(
-                uidMapping[travellerId].displayName,
-                uidMapping[travellerId].email,
-                `Booking confirmed for ${displayName} photography service`,
-                {
-                    title: 'Your booking is confirmed!',
-                    subTitle: "You're going to have an awesome photoshoot with Takapic",
-                    photographerName: displayName,
-                    photographerPhotoURL: photoProfileUrl,
-                    photographerAddress: locationMerge,
-                    photographerAbout: "",
-                    photographerPhone: phoneDialCode + phoneNumber,
-                    reservationDate: moment(startDateTime).format('MMMM Do, YYYY'),
-                    reservationTime: moment(startDateTime).format('hA'),
-                    reservationDuration: PKG_HOUR[packageId],
-                    reservationPeoples: (passengers.adults + passengers.childrens + passengers.infants),
-                }
-            ),
-          
-            // send email notif to photographer
-            sendEmailBookingPhotographer(
-                displayName,
-                email,
-                `Takapic booking confirmed for ${uidMapping[travellerId].displayName}`,
-                {
-                    title: 'You have accepted a booking!',
-                    subTitle: "Well done, you’re going to take some awesome pics with Takapic!",
-                    travellerName: uidMapping[travellerId].displayName,
-                    travellerPhone: travellerContactPerson,
-                    reservationDate: moment(startDateTime).format('MMMM Do, YYYY'),
-                    reservationTime: moment(startDateTime).format('hA'),
-                    reservationDuration: PKG_HOUR[packageId],
-                    reservationPeoples: (passengers.adults + passengers.childrens + passengers.infants),
-                    reservationRate: currency === 'IDR' ? feeIDR : feeUSD,
-                    reservationFee: "-10%",
-                    reservationTotal: currency === 'IDR' ? totalIDR : totalUSD,
-                    reservationCode: reservationId,
-                }
-            )
-    
-          ]).then(() => {
-            resp.status(204).send()
-          });
-
-        })
-
-
-
-
+      ]).then(() => {
+        resp.status(204).send()
+      });
     }).catch(err => {
       resp.status(500).send();
     });

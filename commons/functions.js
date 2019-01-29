@@ -1,8 +1,11 @@
-const axios = require('axios')
-const path = require('path')
-const dotenv = require('dotenv')
-const pug = require('pug')
-const sgMail = require('@sendgrid/mail')
+const axios = require('axios');
+const path = require('path');
+const dotenv = require('dotenv');
+const pug = require('pug');
+const sgMail = require('@sendgrid/mail');
+const firebaseAdmin = require('./firebaseAdmin');
+const moment = require('moment');
+const { PKG } = require('../constants/reservationConstants');
 
 dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
@@ -34,6 +37,8 @@ function sendEmail (template, receiverName, receiverEmail, emailSubject, content
 
   return sgMail.send(message);
 }
+
+module.exports.sendEmail = sendEmail
 
 module.exports.sendEmailNotification = function (
     receiverName, 
@@ -190,4 +195,75 @@ module.exports.sendEmailPaidPhotographer = function(
     emailSubject,
     emailContent
   );
+}
+
+module.exports.fetchReservationDetail = function (reservationID) {
+  const db = firebaseAdmin.database();
+  return db.ref('reservations')
+    .child(reservationID)
+    .once('value')
+    .then(snap => {
+      const {
+        photographerId,
+        travellerId,
+        startDateTime,
+        packageId,
+        passengers,
+        photographerFeeIDR,
+        photographerFeeUSD,
+        totalPriceIDR,
+        totalPriceUSD,
+        travellerContactPerson = '-',
+        uidMapping
+      } = snap.val();
+
+      const totalIDR = 'IDR ' + Number((totalPriceIDR - ((totalPriceIDR-photographerFeeIDR) * 2))).toLocaleString();
+      const totalUSD = 'USD ' + (totalPriceUSD - ((totalPriceUSD-photographerFeeUSD) * 2));
+
+      const feeIDR = 'IDR ' + Number(photographerFeeIDR).toLocaleString();
+      const feeUSD = 'USD ' + photographerFeeUSD;
+
+      return db.ref('user_metadata')
+        .child(photographerId)
+        .once('value')
+        .then(snap => {
+          const {
+            displayName,
+            email,
+            locationMerge,
+            photoProfileUrl,
+            phoneDialCode,
+            phoneNumber,
+            currency
+          } = snap.val();
+
+          let takapicDomain = process.env.GOOGLE_SIGN_IN_REDIRECT;
+          if (!(takapicDomain && takapicDomain !== "")) 
+          takapicDomain = "https://takapic.com";
+          const rsrvLink = takapicDomain + "/me/reservations";
+
+          return {
+            photographerName: displayName,
+            photographerEmail: email,
+            photographerPhotoURL: photoProfileUrl,
+            photographerAddress: locationMerge,
+            photographerAbout: "",
+            photographerPhone: phoneDialCode + phoneNumber,
+            travellerName: uidMapping[travellerId].displayName,
+            travellerEmail: uidMapping[travellerId].email,
+            travellerPhone: travellerContactPerson,
+            reservationDate: moment(startDateTime).format('MMMM Do, YYYY'),
+            reservationTime: moment(startDateTime).format('hA'),
+            reservationDuration: PKG[packageId].hours,
+            reservationPeoples: (passengers.adults + passengers.childrens + passengers.infants),
+            reservationRate: currency === 'IDR' ? feeIDR : feeUSD,
+            reservationFee: "-10%",
+            reservationTotal: currency === 'IDR' ? totalIDR : totalUSD,
+            reservationCode: reservationID,
+            reservationLink: rsrvLink
+          }
+        })
+    }).catch(err => {
+      return err.message;
+    });
 }

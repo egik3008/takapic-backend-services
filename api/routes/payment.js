@@ -4,15 +4,14 @@ const express = require('express');
 const router = express.Router();
 const paypal = require('paypal-rest-sdk');
 const firebase = require('firebase');
-const moment = require('moment');
 const firebaseAdmin = require('../../commons/firebaseAdmin');
 const { 
   sendEmailPaidPhotographer,
-  sendEmailPaidTraveller
+  sendEmailPaidTraveller,
+  fetchReservationDetail
 } = require('../../commons/functions');
 
 const RESERVATION = require('../../constants/reservationConstants');
-const { PKG_HOUR } = require('../../constants/reservationConstants');
 
 dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 
@@ -24,85 +23,42 @@ const paypalConfig = {
 paypal.configure(paypalConfig);
 
 function sendEmailPaidNotif(reservationID) {
-  const db = firebaseAdmin.database();
-  const reservationRef = db.ref('reservations').child(reservationID);
+  fetchReservationDetail(reservationID)
+    .then(res => {
+        sendEmailPaidTraveller(
+          res.travellerName,
+          res.travellerEmail,
+          `Booking request sent to ${res.photographerName}`,
+          {
+            travellerName: res.travellerName,
+            photographerName: res.photographerName,
+            photographerPhotoURL: res.photographerPhotoURL,
+            photographerAddress: res.photographerAddress,
+            reservationDate: res.reservationDate,
+            reservationTime: res.reservationTime,
+            reservationDuration: res.reservationDuration,
+            reservationPeoples: res.reservationPeoples,
+          }
+        );
 
-  reservationRef.once('value')
-    .then(snapshot => {
-      const {
-        photographerId,
-        travellerId,
-        startDateTime,
-        packageId,
-        passengers,
-        photographerFeeIDR,
-        photographerFeeUSD,
-        totalPriceIDR,
-        totalPriceUSD,
-        uidMapping
-      } = snapshot.val();
-
-      const csName  = uidMapping[travellerId].displayName;
-      const csEmail  = uidMapping[travellerId].email;
-
-      const totalIDR = 'IDR ' + Number((totalPriceIDR - ((totalPriceIDR-photographerFeeIDR) * 2))).toLocaleString();
-      const totalUSD = 'USD ' + (totalPriceUSD - ((totalPriceUSD-photographerFeeUSD) * 2));
-
-      const feeIDR = 'IDR ' + Number(photographerFeeIDR).toLocaleString();
-      const feeUSD = 'USD ' + photographerFeeUSD;
-
-      db.ref('user_metadata')
-        .child(photographerId)
-        .once('value')
-        .then(snap => {
-            const {
-              displayName,
-              email,
-              locationMerge,
-              photoProfileUrl,
-              currency
-            } = snap.val();
-
-            let takapicDomain = process.env.GOOGLE_SIGN_IN_REDIRECT;
-            if (!(takapicDomain && takapicDomain !== "")) takapicDomain = "https://takapic.com";
-            const rsrvLink = takapicDomain + "/me/reservations";
-
-
-            sendEmailPaidTraveller(
-              csName,
-              csEmail,
-              `Booking request sent to ${displayName}`,
-              {
-                travellerName: csName,
-                photographerName: displayName,
-                photographerPhotoURL: photoProfileUrl,
-                photographerAddress: locationMerge,
-                reservationDate: moment(startDateTime).format('MMMM Do, YYYY'),
-                reservationTime: moment(startDateTime).format('hA'),
-                reservationDuration: PKG_HOUR[packageId],
-                reservationPeoples: (passengers.adults + passengers.childrens + passengers.infants),
-              }
-            );
-
-            sendEmailPaidPhotographer(
-                displayName,
-                email,
-                `Takapic booking request for ${displayName}`,
-                {
-                    photographerName: displayName,
-                    reservationDate: moment(startDateTime).format('MMMM Do, YYYY'),
-                    reservationTime: moment(startDateTime).format('hA'),
-                    reservationDuration: PKG_HOUR[packageId],
-                    reservationPeoples: (passengers.adults + passengers.childrens + passengers.infants),
-                    reservationRate: currency === 'IDR' ? feeIDR : feeUSD,
-                    reservationFee: "-10%",
-                    reservationTotal: currency === 'IDR' ? totalIDR : totalUSD,
-                    reservationCode: reservationID,
-                    reservationLink: rsrvLink,
-                }
-            );
-        });
-    })
+        sendEmailPaidPhotographer(
+            res.photographerName,
+            res.photographerEmail,
+            `Takapic booking request for ${res.photographerName}`,
+            {
+                photographerName: res.photographerName,
+                reservationDate: res.reservationDate,
+                reservationTime: res.reservationTime,
+                reservationDuration: res.reservationDuration,
+                reservationPeoples: res.reservationPeoples,
+                reservationRate: res.reservationRate,
+                reservationFee: res.reservationFee,
+                reservationTotal: res.reservationTotal,
+                reservationCode: res.reservationCode,
+                reservationLink: res.reservationLink,
+            }
+        );
+    });
 }
 
 router.post('/paypal', async (request, response) => {
