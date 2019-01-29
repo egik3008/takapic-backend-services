@@ -311,9 +311,15 @@ router.get('/locations', function (request, response) {
         console.error(error)
         response.json({ data: [] })
       } else {
-        const results = content.hits.map(function (item) {
-          return { label: item.locationAdmLevel2 + ', ' + item.locationAdmLevel1 + ', ' + item.countryName }
-        })
+        let filterResult = [];
+        let results = content.hits.map(function (item) {
+          const location = item.locationAdmLevel2 + ', ' + item.locationAdmLevel1 + ', ' + item.countryName;
+
+          if (filterResult.includes(location)) return null;
+          filterResult.push(location);
+          return { label:  location }
+        });
+        results = results.filter(loc => loc);
         response.json({ data: results })
       }
     }
