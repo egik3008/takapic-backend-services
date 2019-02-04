@@ -17,17 +17,17 @@ dotenv.config({ path: rootPath + '/.env' })
 
 
 
-// var tpScheduler = schedule.scheduleJob('0 0 23 * * *', function(fireDate){
-//     emailReminderBeforePhotoShoot();
-//     emailReminderToCompletePayment();
+var tpScheduler = schedule.scheduleJob('0 0 23 * * *', function(fireDate){
+    emailReminderBeforePhotoShoot();
+    emailReminderToCompletePayment();
 
-// });
+});
 
 
 // ********************* TASK LIST ************************/
 
 // emailReminderBeforePhotoShoot();
-emailReminderToCompletePayment();
+// emailReminderToCompletePayment();
 
 // ***************** END OF TASK LIST *********************/
 
