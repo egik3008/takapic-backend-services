@@ -5,7 +5,9 @@ const pug = require('pug');
 const sgMail = require('@sendgrid/mail');
 const firebaseAdmin = require('./firebaseAdmin');
 const moment = require('moment');
+const { BASE_REDIRECT_URL } = require('../constants/commonConstants');
 const { PKG } = require('../constants/reservationConstants');
+const RESERVATION = require('../constants/reservationConstants');
 
 dotenv.config({ path: path.dirname(require.main.filename) + '/.env' });
 sgMail.setApiKey(process.env.SENDGRID_API_KEY)
@@ -208,13 +210,18 @@ module.exports.fetchReservationDetail = function (reservationID) {
         travellerId,
         startDateTime,
         packageId,
-        passengers,
+        passengers = {
+          adults: 0,
+          childrens: 0,
+          infants: 0
+        },
         photographerFeeIDR,
         photographerFeeUSD,
         totalPriceIDR,
         totalPriceUSD,
         travellerContactPerson = '-',
-        uidMapping
+        uidMapping,
+        status
       } = snap.val();
 
       const totalIDR = 'IDR ' + Number((totalPriceIDR - ((totalPriceIDR-photographerFeeIDR) * 2))).toLocaleString();
@@ -237,12 +244,14 @@ module.exports.fetchReservationDetail = function (reservationID) {
             currency
           } = snap.val();
 
-          let takapicDomain = process.env.GOOGLE_SIGN_IN_REDIRECT;
-          if (!(takapicDomain && takapicDomain !== "")) 
-          takapicDomain = "https://takapic.com";
-          const rsrvLink = takapicDomain + "/me/reservations";
+          let rsrvLink = BASE_REDIRECT_URL;
+          if (status === RESERVATION.RESERVATION_UNPAID)
+            rsrvLink += `/booking/${photographerId}/${reservationID}`;
+          else 
+            rsrvLink += `/me/reservations/${reservationID}/${photographerId}`;
 
           return {
+            photographerId: photographerId,
             photographerName: displayName,
             photographerEmail: email,
             photographerPhotoURL: photoProfileUrl,
@@ -260,7 +269,7 @@ module.exports.fetchReservationDetail = function (reservationID) {
             reservationFee: "-10%",
             reservationTotal: currency === 'IDR' ? totalIDR : totalUSD,
             reservationCode: reservationID,
-            reservationLink: rsrvLink
+            reservationLink: rsrvLink,
           }
         })
     }).catch(err => {

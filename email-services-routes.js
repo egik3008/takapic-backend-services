@@ -1,7 +1,6 @@
 const path = require('path');
 const dotenv = require('dotenv');
 const express = require('express');
-
 const pug = require('pug')
 const sgMail = require('@sendgrid/mail')
 const { 
@@ -10,6 +9,7 @@ const {
   sendEmailBookingPhotographer,
   fetchReservationDetail
 } = require('./commons/functions');
+const { BASE_REDIRECT_URL } = require('./constants/commonConstants');
 
 const rootPath = path.dirname(require.main.filename)
 dotenv.config({ path: rootPath + '/.env' })
@@ -140,56 +140,60 @@ router.post('/email-notifications', function (req, resp) {
 
 router.post('/photo-session-email-reviews', function (req, resp) {
   
-  const {
-    receiverName,
-    receiverEmail,
-    photographerName,
-    reviewLink
-  } = req.body;
+  const { reservationId } = req.body;
 
-  const emailSubject = `Rate your experience with ${photographerName}`;
-  const emailContentTitle = `Rate your experience with ${photographerName}`;
-  const emailContentBody = `<p>You just completed your photoshoot with <strong>${photographerName}</strong>. Now, take a minute to replect on the experience and share a quick review</p>
-  <p>You'll have space to leave private feedback, just for <strong>${photographerName}</strong> and public comments for future travellers too</p>`;
-  // <p>We won't share any of your response until after <strong>${photographerName}</strong> leaves feedback too</p>`;
-
-  sendEmailReview(
-    receiverName,
-    receiverEmail,
-    emailSubject,
-    emailContentTitle,
-    emailContentBody,
-    reviewLink
-  ).then(function() {
-      resp.status(204).send()
-    })
+  fetchReservationDetail(reservationId)
+    .then(res => {
+      const emailSubject = `Rate your experience with ${res.photographerName}`;
+      const emailContentTitle = `Rate your experience with ${res.photographerName}`;
+      const emailContentBody = `<p>You just completed your photoshoot with <strong>${res.photographerName}</strong>. Now, take a minute to replect on the experience and share a quick review</p>
+      <p>You'll have space to leave private feedback, just for <strong>${res.photographerName}</strong> and public comments for future travellers too</p>`;
+      // <p>We won't share any of your response until after <strong>${photographerName}</strong> leaves feedback too</p>`;
+      const reviewLink = BASE_REDIRECT_URL + `/me/review/${reservationId}/${res.photographerId}`;
+    
+      sendEmailReview(
+        res.travellerName,
+        res.travellerEmail,
+        emailSubject,
+        emailContentTitle,
+        emailContentBody,
+        reviewLink
+      ).then(function() {
+          resp.status(204).send()
+      })
+    });
 });
 
 router.post('/photo-album-email-reviews', function (req, resp) {
   
-  const {
-    receiverName,
-    receiverEmail,
-    photographerName,
-    reviewLink
-  } = req.body;
+  const { reservationId } = req.body;
 
-  const emailSubject = `How was your photoshoot with ${photographerName}`;
-  const emailContentTitle = `How was your photoshoot with ${photographerName}`;
-  const emailContentBody = `<p>Share your experience while it's still fresh.</p>
-  <p>Your review will help <strong>${photographerName}</strong> improve and tells future travellers what to expect</p>`;
-  // <p><strong>${photographerName}</strong> won't see your responses until after they write a review for you</p>`;
+  fetchReservationDetail(reservationId)
+    .then(res => {
+      const emailSubject = `How was your photoshoot with ${res.photographerName}`;
+      const emailContentTitle = `How was your photoshoot with ${res.photographerName}`;
+      const emailContentBody = `<p>Share your experience while it's still fresh.</p>
+      <p>Your review will help <strong>${res.photographerName}</strong> improve and tells future travellers what to expect</p>`;
+      // <p><strong>${photographerName}</strong> won't see your responses until after they write a review for you</p>`;
 
-  sendEmailReview(
-    receiverName,
-    receiverEmail,
-    emailSubject,
-    emailContentTitle,
-    emailContentBody,
-    reviewLink
-  ).then(function() {
-      resp.status(204).send()
+      const reviewLink = BASE_REDIRECT_URL + `/me/review/${reservationId}/${res.photographerId}`;
+    
+      sendEmailReview(
+        res.travellerName,
+        res.travellerEmail,
+        emailSubject,
+        emailContentTitle,
+        emailContentBody,
+        reviewLink
+      ).then(function() {
+          resp.status(204).send()
+        })
     })
+    .catch(err => {
+      console.log("error photo album email: ", err.message);
+      resp.status(500).send()
+    });
+
 });
 
 

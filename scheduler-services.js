@@ -14,15 +14,24 @@ const {
 
 const rootPath = path.dirname(require.main.filename)
 dotenv.config({ path: rootPath + '/.env' })
- 
-// task schedule execute every day at 21.00
-var tpScheduler = schedule.scheduleJob('0 0 21 * * *', function(fireDate){
-    emailReminderBeforePhotoShoot();
-    emailReminderToCompletePayment();
-});
 
 
-//********************* TASK ************************/
+
+// var tpScheduler = schedule.scheduleJob('0 0 23 * * *', function(fireDate){
+//     emailReminderBeforePhotoShoot();
+//     emailReminderToCompletePayment();
+
+// });
+
+
+// ********************* TASK LIST ************************/
+
+// emailReminderBeforePhotoShoot();
+emailReminderToCompletePayment();
+
+// ***************** END OF TASK LIST *********************/
+
+
 
 function isDateReminder(date, days) {
     return (moment().diff(date, 'days') === days);
@@ -110,6 +119,8 @@ function emailReminderToCompletePayment() {
                 let sendReminder = false;
                 if (isDateReminder(bookingDate, 2)) sendReminder = true;
                 if (isDateReminder(bookingDate, 3)) sendReminder = true;
+
+                // console.log(key, bookingDate.format('D-M-Y'));
 
                 if (sendReminder) {
                     fetchReservationDetail(key)
