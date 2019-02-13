@@ -320,11 +320,18 @@ router.get('/locations', function (request, response) {
           return { label:  location }
         });
         results = results.filter(loc => loc);
+        results = results.sort(function(a, b) {
+          var nameA = a.label.toUpperCase();
+          var nameB = b.label.toUpperCase();
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
+          return 0;
+        });
         response.json({ data: results })
       }
     }
   )
-})
+});
 
 router.get('/reservations', function (request, response) {
   fetchCurrencies()
