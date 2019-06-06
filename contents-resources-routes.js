@@ -38,10 +38,10 @@ function convertPriceCurrency (rows, priceKey, allLocalRates, currency) {
 
       // Get IDR rates of current local rates first.
       const inIDR = Math.round(item[priceKey] / IDRRates)
-      item[priceKey + 'IDR'] = inIDR
+      item[priceKey + 'IDR'] = Math.round(inIDR + (inIDR * 0.3)); 
 
       // Use IDR rates as a base value to convert to USD
-      item[priceKey + 'USD'] = Math.ceil(rates * inIDR)
+      item[priceKey + 'USD'] = Math.ceil((rates * inIDR) + ((rates * inIDR) * 0.3));
 
       // Use original price (not converted to IDR before) to convert to USD.
       // This is just an additional optional information.
