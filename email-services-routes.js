@@ -32,7 +32,7 @@ router.post('/email-verification', function (request, response) {
       name: 'Takapic',
       email: 'admin@takapic.com'
     },
-    subject: 'Verify your email for Takapic',
+    subject: '[TAKAPIC] Verify your email for Takapic',
     html: compiledFunction({
       BASE_HOSTNAME: process.env.BASE_HOSTNAME,
       EMAIL_TITLE: 'Verify your email for Takapic',
@@ -68,7 +68,7 @@ router.post('/contact-takapic', function (request, response) {
       name: consumerName,
       email: consumerEmail
     },
-    subject: 'Contact Takapic - ' + topic,
+    subject: '[TAKAPIC] Contact Takapic - ' + topic,
     html: compiledFunction({
       EMAIL_TITLE: 'Contact Takapic - ' + topic,
       CONSUMER: consumerName,
@@ -101,7 +101,7 @@ router.post('/cashout-request', function (request, response) {
       name: request.body.REQUESTER,
       email: request.body.EMAIL
     },
-    subject: 'Cash out Request - ' + request.body.REQUESTER,
+    subject: '[TAKAPIC] Cash out Request - ' + request.body.REQUESTER,
     html: compiledFunction(request.body)
   }
 
@@ -144,7 +144,7 @@ router.post('/photo-session-email-reviews', function (req, resp) {
 
   fetchReservationDetail(reservationId)
     .then(res => {
-      const emailSubject = `Rate your experience with ${res.photographerName}`;
+      const emailSubject = `[TAKAPIC] Rate your experience with ${res.photographerName}`;
       const emailContentTitle = `Rate your experience with ${res.photographerName}`;
       const emailContentBody = `<p>You just completed your photoshoot with <strong>${res.photographerName}</strong>. Now, take a minute to replect on the experience and share a quick review</p>
       <p>You'll have space to leave private feedback, just for <strong>${res.photographerName}</strong> and public comments for future travellers too</p>`;
@@ -170,7 +170,7 @@ router.post('/photo-album-email-reviews', function (req, resp) {
 
   fetchReservationDetail(reservationId)
     .then(res => {
-      const emailSubject = `How was your photoshoot with ${res.photographerName}`;
+      const emailSubject = `[TAKAPIC] How was your photoshoot with ${res.photographerName}`;
       const emailContentTitle = `How was your photoshoot with ${res.photographerName}`;
       const emailContentBody = `<p>Share your experience while it's still fresh.</p>
       <p>Your review will help <strong>${res.photographerName}</strong> improve and tells future travellers what to expect</p>`;
