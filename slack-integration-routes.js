@@ -79,7 +79,7 @@ router.post('/midtrans-payment-notification', function (request, response) {
             const messageData = {
               receiverName: photographerName,
               receiverEmail: photographerEmail,
-              emailSubject: "New Booking for you created!",
+              emailSubject: "[TAKAPIC] New Booking for you created!",
               emailContent: tableStr
             };
 
