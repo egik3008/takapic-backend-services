@@ -28,7 +28,7 @@ function sendEmailPaidNotif(reservationID) {
         sendEmailPaidTraveller(
           res.travellerName,
           res.travellerEmail,
-          `Booking request sent to ${res.photographerName}`,
+          `[TAKAPIC] Booking request sent to ${res.photographerName}`,
           {
             travellerName: res.travellerName,
             photographerName: res.photographerName,
@@ -44,7 +44,7 @@ function sendEmailPaidNotif(reservationID) {
         sendEmailPaidPhotographer(
             res.photographerName,
             res.photographerEmail,
-            `Takapic booking request for ${res.photographerName}`,
+            `[TAKAPIC] Takapic booking request for ${res.photographerName}`,
             {
                 photographerName: res.photographerName,
                 reservationDate: res.reservationDate,
@@ -169,7 +169,7 @@ router.post('/midtrans/payment-notification', function (request, response) {
             sendEmailPaidNotif(order_id);
             return response.json({
               status: true,
-              message: "payment success"
+              message: "Payment Success"
             });
           }).catch(err => {
             return response.json({
