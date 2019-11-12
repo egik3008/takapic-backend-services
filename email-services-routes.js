@@ -144,7 +144,7 @@ router.post('/photo-session-email-reviews', function (req, resp) {
 
   fetchReservationDetail(reservationId)
     .then(res => {
-      const emailSubject = `Rate your experience with ${res.photographerName}`;
+      const emailSubject = `[TAKAPIC] Rate your experience with ${res.photographerName}`;
       const emailContentTitle = `Rate your experience with ${res.photographerName}`;
       const emailContentBody = `<p>You just completed your photoshoot with <strong>${res.photographerName}</strong>. Now, take a minute to replect on the experience and share a quick review</p>
       <p>You'll have space to leave private feedback, just for <strong>${res.photographerName}</strong> and public comments for future travellers too</p>`;
@@ -170,7 +170,7 @@ router.post('/photo-album-email-reviews', function (req, resp) {
 
   fetchReservationDetail(reservationId)
     .then(res => {
-      const emailSubject = `How was your photoshoot with ${res.photographerName}`;
+      const emailSubject = `[TAKAPIC] How was your photoshoot with ${res.photographerName}`;
       const emailContentTitle = `How was your photoshoot with ${res.photographerName}`;
       const emailContentBody = `<p>Share your experience while it's still fresh.</p>
       <p>Your review will help <strong>${res.photographerName}</strong> improve and tells future travellers what to expect</p>`;
@@ -207,19 +207,21 @@ router.post('/notification-accepted-booking', function (req, resp) {
         sendEmailBookingTraveller(
             res.travellerName,
             res.travellerEmail,
-            `Booking confirmed for ${res.photographerName} photography service`,
+            `[TAKAPIC] Booking confirmed for ${res.photographerName} photography service`,
             {
                 title: 'Your booking is confirmed!',
-                subTitle: "You're going to have an awesome photoshoot with Takapic",
-                photographerName: res.photographerName,
+                subTitle: "Well done, you're going to take some pics with Takapic",
+                photographerAddress: res.photographerAddress,  
                 photographerPhotoURL: res.photographerPhotoURL,
-                photographerAddress: res.photographerAddress,
+                photographerName: res.photographerName,
                 photographerAbout: res.photographerAbout,
-                photographerPhone: res.photographerPhone,
                 reservationDate: res.reservationDate,
                 reservationTime: res.reservationTime,
                 reservationDuration: res.reservationDuration,
                 reservationPeoples: res.reservationPeoples,
+                subTitle: `${photographerName} is your photographer`,
+                subTitle: `Contact your photographer at ${photographerPhone} to coordinate your meeting point`,
+          
             }
         ),
       
