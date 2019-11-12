@@ -61,19 +61,23 @@ function emailReminderBeforePhotoShoot() {
                         sendEmailBookingTraveller(
                             res.travellerName,
                             res.travellerEmail,
-                            `Booking reminder - ${res.reservationDate}`,
+                            `[TAKAPIC] Booking reminder - ${res.reservationDate}`,
                             {
                                 title: 'Get ready to pose!',
                                 subTitle: `It’s ${days} days to your memorable photo shoot!`,
-                                photographerName: res.photographerName,
-                                photographerPhotoURL: res.photographerPhotoURL,
                                 photographerAddress: res.photographerAddress,
-                                photographerAbout: "",
+                                photographerPhotoURL: res.photographerPhotoURL,
+                                photographerName: res.photographerName,
+                                photographerAbout: res.photographerAbout,
                                 photographerPhone: res.photographerPhone,
                                 reservationDate: res.reservationDate,
                                 reservationTime: res.reservationTime,
                                 reservationDuration: res.reservationDuration,
                                 reservationPeoples: res.reservationPeoples,
+                                subTitle: `Your awesome photographer is ready to help`,
+                                subTitle: `Reach out to ${photographerName} with any questions you may have about your photo shoot.`,
+                                subTitle: `Message Photographer at ${photographerPhone} `,
+                                subTitle: `Check out our articles on ${photographerAddress}`,
                             }
                         ),
                     
@@ -81,7 +85,7 @@ function emailReminderBeforePhotoShoot() {
                         sendEmailBookingPhotographer(
                             res.photographerName,
                             res.photographerEmail,
-                            `Booking reminder - ${res.reservationDate}`,
+                            `[TAKAPIC] Booking reminder - ${res.reservationDate}`,
                             {
                                 title: 'Pack up your gear!',
                                 subTitle: `Get ready to show your skill because it’s ${days} days to your photo shoot!`,
