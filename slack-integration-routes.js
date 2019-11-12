@@ -64,7 +64,7 @@ router.post('/midtrans-payment-notification', function (request, response) {
           })
           .then(() => {
             // Start - Send notification email
-            const tableStr = "Congratulations! you have a new booking!<br />Please review and accept if you are ok" +
+            const tableStr = "[TAKAPIC] Congratulations! you have a new booking!<br />Please review and accept if you are ok" +
               "<br /><br />" +
               "<table>" +
               "<tr><td>Customer Name</td><td>:</td><td>"+ reservationData.uidMapping[travellerId].displayName +"</td></tr>" +
